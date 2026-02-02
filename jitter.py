@@ -11,12 +11,12 @@ snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # jitter value: 0.0272176
 def jitter(
     sound: parselmouth.Sound,
     kind : str = "local",
-    pitch_floor: float = 75.0, #FIXME do lit review to see what correct value of this should be
+    pitch_floor: float = 75.0, #currently set to 75Hz, seems to work well
     pitch_ceiling: float = 500.0,
     pitch_time_step = 0.01,
     from_time: float = 0.0, # if from time and to time are same it goes for the entire audio recording
     to_time: float = 0.0,
-    period_floor: float = 0.0001, # all of these are default praat vals
+    period_floor: float = 0.0001, # this and below are default praat vals
     period_ceiling: float = 0.02,
     maximum_period_factor: float = 1.3,
 ):

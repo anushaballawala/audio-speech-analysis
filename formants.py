@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 #RELATIVE ENERGY FOR FORMANT 3 SHOULD BE MORE NEGATIVE WITH DEPRESSED PATIENTS
 
 # snd = parselmouth.Sound("raw_audio/hoarse_test_voice.wav") #  THIS IS AN OUTLIER SINCE THE HAORSE TEST VOICE FUNDAMENTAL FREQUENCY WAS ALL OVER THE PLACE. WE WILL NEED ANOTHER METHOD TO EXTRACT WHEN A PERSON IS TALKING.
-snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # mean_rel_energy_f_3: -39.3779743308452 
-# snd = parselmouth.Sound("raw_audio/high_pitch.wav") # mean_rel_energy_f_3: -38.00076942252633 (CORRECT: EXPECTED VALUE TO BE SMALLER IN MAGNITUDE --> ratio is larger --> more f3, which is correct!)
+snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # mean_rel_energy_f_3: -37.54012983676498
+# snd = parselmouth.Sound("raw_audio/high_pitch.wav") # mean_rel_energy_f_3: -35.545650404064226 (CORRECT: EXPECTED VALUE TO BE SMALLER IN MAGNITUDE --> ratio is larger --> more f3, which is correct!)
 
-def relative_energy_formant( #FIXME SHOULD I GET RELATIVE ENERGY FROM PARTS WHERE THERE IS SPEECH (CALCULATED THROUGH NONZERO F0 FOR ALL F_i)?
+def relative_energy_formant(
     sound: parselmouth.Sound,
     formant: int, # the formant frequency whose relative energy is to be extracted
     time_step: float = 0.01,
@@ -23,7 +23,7 @@ def relative_energy_formant( #FIXME SHOULD I GET RELATIVE ENERGY FROM PARTS WHER
     max_freq_hz: float = 5000.0, # MAX HZ ALLOWED CAP ALLOWED to be counted as part of f_i (most of time f_i extracted will never reach this)
     pitch_floor: float = 75.0, # PITCH FLOOR AND CEILING ARE FOR DETERMINING FRAMES WHEN A PERSON IS SPEAKING CALCULATED USING NONZERO F0 VALUES. FIXME ASK ABOUT PITCH FLOOR/CELING VALUES TO BE USED; PITCH MIN WAS AN IMPORTANT FEATURE IN DETERMINING DIFFERENCES (w/ 27.5 min pitch was 28.3 With 75 min pitch was around 96.5); 27.5 looks like it creates outliers
     pitch_ceiling: float = 500.0,
-    f_i_bandwidth_hz: float = 100.0,   # get energies +/- 50 Hz around f_i to capture all f_i energy TODO ask what I should choose for f_i bandwidth_hz
+    f_i_bandwidth_hz: float = -1,   # get energies +/- f_i_bandwidth_hz/2 Hz around f_i to capture all f_i energy; for defaults, use -1. 
     return_db: bool = True  # if True, returns 10*log10(relative_energy)
 ):
     """
@@ -32,6 +32,11 @@ def relative_energy_formant( #FIXME SHOULD I GET RELATIVE ENERGY FROM PARTS WHER
       rel_energy_f_i: np.ndarray (linear ratio, or dB if return_db=True)
       mean_rel_energy_f_i: float
     """
+    
+    # default values based on paper for bandwidth hz: (Link to paper: https://www.isca-archive.org/eurospeech_1999/karlsson99_eurospeech.pdf)
+    formant_to_bandwidth_hz = {1: 60, 2: 90, 3: 150, 4: 200}
+    if (f_i_bandwidth_hz == -1):
+      f_i_bandwidth_hz = formant_to_bandwidth_hz.get(formant, 100) #gets the bandwidth value for the ith formant, and defaults to 100 if it's not in the dictionary
     
     formant_freqs = call(
         sound,
@@ -87,15 +92,14 @@ def relative_energy_formant( #FIXME SHOULD I GET RELATIVE ENERGY FROM PARTS WHER
     
 ts, relative_energies, mean_rel_energy_f_3 = relative_energy_formant(snd, 3)
 
-print(mean_rel_energy_f_3)
 
-plt.scatter(ts, relative_energies, color='blue', label='Data Points')
-plt.axhline(y=mean_rel_energy_f_3, color='r', linestyle='-', label=f'f3 relative energy mean: {mean_rel_energy_f_3}')
-plt.title("f3 relative energy over time")
-plt.xlabel("Time (in seconds)")
-plt.ylabel("f3 relative energy")
-plt.savefig("figures/f3_rel_energies_normal_audio.png", dpi=300, bbox_inches='tight')
-plt.show()
-    
-    
-    
+#__________TESTING___________
+# print(mean_rel_energy_f_3)
+
+# plt.scatter(ts, relative_energies, color='blue', label='Data Points')
+# plt.axhline(y=mean_rel_energy_f_3, color='r', linestyle='-', label=f'f3 relative energy mean: {mean_rel_energy_f_3}')
+# plt.title("f3 relative energy over time")
+# plt.xlabel("Time (in seconds)")
+# plt.ylabel("f3 relative energy")
+# plt.savefig("figures/f3_rel_energies_normal_audio.png", dpi=300, bbox_inches='tight')
+# plt.show()
