@@ -18,7 +18,7 @@ def shimmer_apqN(
     pitch_time_step = 0.01,
     from_time: float = 0.0, # if "from time" and "to time" are same it goes for the entire audio recording
     to_time: float = 0.0,
-    period_floor: float = 0.0001, # all of these are default praat vals
+    period_floor: float = 0.0001, # all of these are default praat values
     period_ceiling: float = 0.02,
     maximum_period_factor: float = 1.3,
     maximum_amplitude_factor: float = 1.6,
