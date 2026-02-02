@@ -11,12 +11,12 @@ snd = parselmouth.Sound("raw_audio/hoarse_test_voice.wav") # apq5 shimmer value:
 
 def shimmer_apqN(
     sound: parselmouth.Sound,
-    N: int,
+    N: int, # N can only be 3, 5, or 11
     *,
-    pitch_floor: float = 75.0, #FIXME do lit review to see what correct value of this should be
+    pitch_floor: float = 75.0, 
     pitch_ceiling: float = 500.0,
     pitch_time_step = 0.01,
-    from_time: float = 0.0, # if from time and to time are same it goes for the entire audio recording
+    from_time: float = 0.0, # if "from time" and "to time" are same it goes for the entire audio recording
     to_time: float = 0.0,
     period_floor: float = 0.0001, # all of these are default praat vals
     period_ceiling: float = 0.02,

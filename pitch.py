@@ -11,7 +11,7 @@ snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # pitch mean: 116
 def pitches(
     sound: parselmouth.Sound,
     time_step: float = 0.01,
-    pitch_floor: float = 75.0, #FIXME ASK ABOUT PITCH FLOOR/CELING VALUES TO BE USED; PITCH MIN WAS AN IMPORTANT FEATURE IN DETERMINING DIFFERENCES (w/ 27.5 min pitch was 28.3 With 75 min pitch was around 96.5); 27.5 looks like it creates outliers
+    pitch_floor: float = 75.0,
     pitch_ceiling: float = 500.0,
 ):
     """
@@ -22,7 +22,7 @@ def pitches(
       f0_lstsq_intercept: float
     """
     
-    #uses praat's autocorrelation method (instead of cc -> cross correlation) 
+    #uses praat's autocorrelation method (instead of cc [cross correlation]) 
     
     pitch = sound.to_pitch(time_step=time_step, pitch_floor=pitch_floor, pitch_ceiling=pitch_ceiling) 
     # Extract the frequencies (Hz) and corresponding times
@@ -48,6 +48,7 @@ def pitches(
 nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept = pitches(snd)
 print("Pitch mean:", np.mean(nonzero_f0_values))
 
+#__________TESTING___________
 # line_y_values = f0_lstsq_slope * nonzero_xs + f0_lstsq_intercept
 # plt.scatter(nonzero_xs, nonzero_f0_values, color='blue', label='Data Points')
 # plt.plot(nonzero_xs, line_y_values, color='red', linestyle='-', label='Line of Best Fit')
