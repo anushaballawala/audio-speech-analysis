@@ -24,7 +24,7 @@ def relative_energy_formant(
     pitch_floor: float = 75.0, # PITCH FLOOR AND CEILING ARE FOR DETERMINING FRAMES WHEN A PERSON IS SPEAKING CALCULATED USING NONZERO F0 VALUES. FIXME ASK ABOUT PITCH FLOOR/CELING VALUES TO BE USED; PITCH MIN WAS AN IMPORTANT FEATURE IN DETERMINING DIFFERENCES (w/ 27.5 min pitch was 28.3 With 75 min pitch was around 96.5); 27.5 looks like it creates outliers
     pitch_ceiling: float = 500.0,
     f_i_bandwidth_hz: float = -1,   # get energies +/- f_i_bandwidth_hz/2 Hz around f_i to capture all f_i energy; for defaults, use -1. 
-    return_db: bool = True  # if True, returns 10*log10(relative_energy)
+    return_db: bool = True  # if True, returns 10*log_10(relative_energy)
 ):
     """
     Returns:
