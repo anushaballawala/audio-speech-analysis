@@ -8,7 +8,7 @@ snd = "raw_audio/testsoundmono.mp3" # gives mean alpha ratio 5976.599 (w/out log
 # snd = "raw_audio/high_pitch.wav" # gives mean alpha ratio of 112.417 (w/out log10), 1.516 w/ log10
 
 
-def alpha_ratio(
+def alpha_ratio( #TODO ask if I should add masking to alpha_ratio
     sound_path: str,
     time_step: float = 0.01, 
     window_length: float = 0.025,
@@ -54,11 +54,15 @@ def alpha_ratio(
     
 
 ts, ratios, alpha_ratio_mean, s_hz = alpha_ratio(snd)
-print(alpha_ratio_mean)
+
+
+#__________TESTING___________
+
+# print(alpha_ratio_mean)
 # plt.scatter(ts, ratios, color='blue', label='Data Points')
 # plt.axhline(y=alpha_ratio_mean, color='r', linestyle='-', label=f'Alpha ratio mean: {alpha_ratio_mean}')
 # plt.title("Alpha ratios over time")
 # plt.xlabel("Time (in seconds)")
 # plt.ylabel("Alpha ratio")
-# plt.savefig("figures/alpha_ratios_high_pitched_audio.png", dpi=300, bbox_inches='tight')
+# # plt.savefig("figures/alpha_ratios_high_pitched_audio.png", dpi=300, bbox_inches='tight')
 # plt.show()

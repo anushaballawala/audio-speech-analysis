@@ -30,7 +30,6 @@ def pitches(
     # Extract the frequencies (Hz) and corresponding times
     f0_values = pitch.selected_array["frequency"]  # (in Hz)
     times = pitch.xs()                             # time pts (s)
-
     nonzero_mask = f0_values != 0
     nonzero_f0_values = f0_values[nonzero_mask]
     nonzero_xs = times[nonzero_mask]
@@ -48,9 +47,10 @@ def pitches(
 
 
 nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, s_hz = pitches(snd)
-print("Pitch mean:", np.mean(nonzero_f0_values))
+
 
 #__________TESTING___________
+# print("Pitch mean:", np.mean(nonzero_f0_values))
 # line_y_values = f0_lstsq_slope * nonzero_xs + f0_lstsq_intercept
 # plt.scatter(nonzero_xs, nonzero_f0_values, color='blue', label='Data Points')
 # plt.plot(nonzero_xs, line_y_values, color='red', linestyle='-', label='Line of Best Fit')

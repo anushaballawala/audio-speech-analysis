@@ -15,7 +15,7 @@ def loudness_in_db(
     time_step: float = 0.01,
     pitch_floor: float = 75.0,
     subtract_mean: bool = True,
-    activity_threshold_db: float = 40.0 # CAN ADJUST THIS VALUE (NORMALLY AROUND 40 BUT I SET IT TO 20) #TODO ASK IF I SHOULD MASK FOR ACTIVE NOISE WINDOWS USING NONZERO PITCH VALUES (CURRENTLY USING NOISE THRESHOLD WHICH IS NORMAL)
+    activity_threshold_db: float = 40.0 # CAN ADJUST THIS VALUE (NORMALLY AROUND 40)
 ):
     """
     Mean intensity (dB) over active frames only.

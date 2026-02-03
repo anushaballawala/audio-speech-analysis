@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 #RELATIVE ENERGY FOR FORMANT 3 SHOULD BE MORE NEGATIVE WITH DEPRESSED PATIENTS
 
 # snd = "raw_audio/hoarse_test_voice.wav" #  THIS IS AN OUTLIER SINCE THE HAORSE TEST VOICE FUNDAMENTAL FREQUENCY WAS ALL OVER THE PLACE. WE WILL NEED ANOTHER METHOD TO EXTRACT WHEN A PERSON IS TALKING.
-snd = "raw_audio/testsoundmono.mp3" # mean_rel_energy_f_3: -37.54012983676498
-# snd = "raw_audio/high_pitch.wav" # mean_rel_energy_f_3: -35.545650404064226 (CORRECT: EXPECTED VALUE TO BE SMALLER IN MAGNITUDE --> ratio is larger --> more f3, which is correct!)
+snd = "raw_audio/testsoundmono.mp3" # mean_rel_energy_f_3: -43.187290370551345
+# snd = "raw_audio/high_pitch.wav" # mean_rel_energy_f_3: -37.68999286239633 (CORRECT: EXPECTED VALUE TO BE SMALLER IN MAGNITUDE --> ratio is larger --> more f3, which is correct!)
 
 def relative_energy_formant(
     sound_path: str, 
@@ -37,9 +37,6 @@ def relative_energy_formant(
     sound = parselmouth.Sound(sound_path)
     
     sampling_hz = sound.sampling_frequency
-    
-    # if(sampling_hz != 44100):
-    #   raise ValueError("Sampling Hz is not 44.1 kHz")
     
     # default values based on paper for bandwidth hz: (Link to paper: https://www.isca-archive.org/eurospeech_1999/karlsson99_eurospeech.pdf)
     formant_to_bandwidth_hz = {1: 60, 2: 90, 3: 150, 4: 200}
@@ -72,10 +69,12 @@ def relative_energy_formant(
     
     relative_energies = []
     
+    speaking_times = []
     for j, t in enumerate(times):
       f0 = pitch.get_value_at_time(float(t))
-      if f0 <= 0:
+      if np.isnan(f0):
         continue #person is not speaking
+      speaking_times.append(t)
       
       f_i = call(formant_freqs, "Get value at time...", formant, float(t), "Hertz", "Linear") # value of formant_i in hz at time t
       if not np.isfinite(f_i) or f_i < 0 or f_i > max_freq_hz:
@@ -95,18 +94,18 @@ def relative_energy_formant(
       relative_energies = 10 * np.log10(relative_energies)
     mean_rel_energy_f_i = np.mean(relative_energies)
     
-    return times, relative_energies, mean_rel_energy_f_i, sampling_hz
+    return speaking_times, relative_energies, mean_rel_energy_f_i, sampling_hz
       
     
 ts, relative_energies, mean_rel_energy_f_3, sampling_hz = relative_energy_formant(snd, 3)
 
 #__________TESTING___________
-# print(mean_rel_energy_f_3)
+print(mean_rel_energy_f_3)
 
 # plt.scatter(ts, relative_energies, color='blue', label='Data Points')
 # plt.axhline(y=mean_rel_energy_f_3, color='r', linestyle='-', label=f'f3 relative energy mean: {mean_rel_energy_f_3}')
 # plt.title("f3 relative energy over time")
 # plt.xlabel("Time (in seconds)")
 # plt.ylabel("f3 relative energy")
-# plt.savefig("figures/f3_rel_energies_normal_audio.png", dpi=300, bbox_inches='tight')
+# # plt.savefig("figures/f3_rel_energies_normal_audio.png", dpi=300, bbox_inches='tight')
 # plt.show()
