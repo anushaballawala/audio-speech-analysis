@@ -1,0 +1,4 @@
+parselmouth
+numpy
+scipy
+matplotlib

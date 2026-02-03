@@ -40,8 +40,11 @@ def loudness_in_db(
     
     
 ts, intensity, mean_intensity, s_hz = loudness_in_db(snd)
-print(mean_intensity)
 
+
+#__________TESTING___________
+
+# print(mean_intensity)
 # plt.scatter(ts, intensity, color='blue', label='Data Points')
 # plt.axhline(y=mean_intensity, color='r', linestyle='-', label=f'Intensity mean: {mean_intensity}')
 # plt.title("Intensities over time")

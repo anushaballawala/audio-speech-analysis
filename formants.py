@@ -100,7 +100,7 @@ def relative_energy_formant(
 ts, relative_energies, mean_rel_energy_f_3, sampling_hz = relative_energy_formant(snd, 3)
 
 #__________TESTING___________
-print(mean_rel_energy_f_3)
+# print(mean_rel_energy_f_3)
 
 # plt.scatter(ts, relative_energies, color='blue', label='Data Points')
 # plt.axhline(y=mean_rel_energy_f_3, color='r', linestyle='-', label=f'f3 relative energy mean: {mean_rel_energy_f_3}')
