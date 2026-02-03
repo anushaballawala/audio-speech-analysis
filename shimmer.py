@@ -5,12 +5,12 @@ import parselmouth
 from parselmouth.praat import call
 import matplotlib.pyplot as plt
 
-snd = parselmouth.Sound("raw_audio/hoarse_test_voice.wav") # apq5 shimmer value: 0.11146423422694232 (higher, as expected)
-# snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # apq5 shimmer value: 0.05805759435795879
-# snd = parselmouth.Sound("raw_audio/high_pitch.wav")
+snd = "raw_audio/hoarse_test_voice.wav" # apq5 shimmer value: 0.11146423422694232 (higher, as expected)
+# snd = "raw_audio/testsoundmono.mp3" # apq5 shimmer value: 0.05805759435795879
+# snd = "raw_audio/high_pitch.wav"
 
 def shimmer_apqN(
-    sound: parselmouth.Sound,
+    sound_path: str,
     N: int, # N can only be 3, 5, or 11
     *,
     pitch_floor: float = 75.0, 
@@ -26,6 +26,10 @@ def shimmer_apqN(
     """
     Compute N-point Amplitude Perturbation Quotient (aqpN shimmer)
     """
+    
+    sound = parselmouth.Sound(sound_path)
+    sampling_hz = sound.sampling_frequency
+    
     if N not in [3, 5, 11]:
         raise ValueError("N can only be 3, 5, or 11")
     
@@ -43,9 +47,9 @@ def shimmer_apqN(
         maximum_period_factor,
         maximum_amplitude_factor,
     )
-    return apqN
+    return apqN, sampling_hz
 
-apq5_shimmer = shimmer_apqN(snd, 5)
+apq5_shimmer, s_hz = shimmer_apqN(snd, 5)
 print(apq5_shimmer)
     
     

@@ -3,13 +3,13 @@ import numpy as np
 from numpy.linalg import lstsq
 import matplotlib.pyplot as plt
 
-# # snd = parselmouth.Sound("raw_audio/hoarse_test_voice.wav")
-snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # gives mean alpha ratio 5976.599 (w/out log10), 2.079 w/ log10
-# snd = parselmouth.Sound("raw_audio/high_pitch.wav") # gives mean alpha ratio of 112.417 (w/out log10), 1.516 w/ log10
+# # snd = "raw_audio/hoarse_test_voice.wav"
+snd = "raw_audio/testsoundmono.mp3" # gives mean alpha ratio 5976.599 (w/out log10), 2.079 w/ log10
+# snd = "raw_audio/high_pitch.wav" # gives mean alpha ratio of 112.417 (w/out log10), 1.516 w/ log10
 
-#TODO ASK ABOUT WHETHER WE SHOULD USE LOGARITHM OF ALPHA RATIO OR LINEAR VERSION (I'M THINKING LOGARITHM SO IT KEEPS THEM ON THE SAME ORDER OF MAGNITUDE)
+
 def alpha_ratio(
-    sound: parselmouth.Sound,
+    sound_path: str,
     time_step: float = 0.01, 
     window_length: float = 0.025,
     f_low1: float = 50.0,
@@ -22,6 +22,10 @@ def alpha_ratio(
          alpha(t) = log10(sum(E[50-1000 Hz]) / sum(E[1000-5000 Hz]))
      Returns: times (s), alpha_ratio_per_frame, alpha_ratio_mean
     """
+    
+    sound = parselmouth.Sound(sound_path)
+    sampling_hz = sound.sampling_frequency
+    
     spectrogram = sound.to_spectrogram(
          window_length=window_length,
          time_step=time_step,
@@ -46,10 +50,10 @@ def alpha_ratio(
     
     alpha_ratio_mean = np.mean(alpha_ratios)
     
-    return times, alpha_ratios, alpha_ratio_mean
+    return times, alpha_ratios, alpha_ratio_mean, sampling_hz
     
 
-ts, ratios, alpha_ratio_mean = alpha_ratio(snd)
+ts, ratios, alpha_ratio_mean, s_hz = alpha_ratio(snd)
 print(alpha_ratio_mean)
 # plt.scatter(ts, ratios, color='blue', label='Data Points')
 # plt.axhline(y=alpha_ratio_mean, color='r', linestyle='-', label=f'Alpha ratio mean: {alpha_ratio_mean}')

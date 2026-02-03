@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 
 # BE CAREFUL BECAUSE LOUDNESS CAN CHANGE BASED ON MICROPHONE, AND LOUDNESS IS NOT ROBUST TO CONTEXT
 
-snd = parselmouth.Sound("raw_audio/hoarse_test_voice.wav") # mean intensity was 50.64
-# snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # mean intensity was 57.78
-# snd = parselmouth.Sound("raw_audio/high_pitch.wav") 
+snd = "raw_audio/hoarse_test_voice.wav" # mean intensity was 50.64
+# snd = "raw_audio/testsoundmono.mp3" # mean intensity was 57.78
+# snd = "raw_audio/high_pitch.wav"
 
 def loudness_in_db(
-    sound: parselmouth.Sound,
+    sound_path: str,
     time_step: float = 0.01,
     pitch_floor: float = 75.0,
     subtract_mean: bool = True,
@@ -21,6 +21,10 @@ def loudness_in_db(
     Mean intensity (dB) over active frames only.
     Returns times (s), intensity_per_frame, mean_intensity
     """
+    
+    sound = parselmouth.Sound(sound_path)
+    sampling_hz = sound.sampling_frequency
+    
     intensity = call(sound, "To Intensity...", pitch_floor, time_step, subtract_mean) #
     vals = intensity.values[0, :]
     times = intensity.xs()
@@ -31,11 +35,11 @@ def loudness_in_db(
     
     active_intensity_vals_mean = np.mean(active_intensity_vals)
     
-    return active_times, active_intensity_vals, active_intensity_vals_mean
+    return active_times, active_intensity_vals, active_intensity_vals_mean, sampling_hz
     
     
     
-ts, intensity, mean_intensity = loudness_in_db(snd)
+ts, intensity, mean_intensity, s_hz = loudness_in_db(snd)
 print(mean_intensity)
 
 # plt.scatter(ts, intensity, color='blue', label='Data Points')

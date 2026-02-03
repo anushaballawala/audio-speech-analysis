@@ -2,7 +2,7 @@ import parselmouth
 from parselmouth.praat import call
 
 def denoise_sound_praat_remove_noise(
-    sound: parselmouth.Sound,
+    sound_path: str,
     noise_start_s: float,
     noise_end_s: float,
     window_length_s: float = 0.025,
@@ -21,6 +21,10 @@ def denoise_sound_praat_remove_noise(
     - Smoothing hz is applied to the NOISE SPECTRUM ESTIMATE, NOT THE ENTIRE SPEECH SIGNAL.
     """
     
+    sound = parselmouth.Sound(sound_path)
+    
+    sampling_hz = sound.sampling_frequency
+    
     denoised = call(
         sound,
         "Remove noise...",
@@ -32,13 +36,13 @@ def denoise_sound_praat_remove_noise(
         smoothing_hz,
         method,
     )
-    return denoised
+    return denoised, sampling_hz
 
 
-snd = parselmouth.Sound("raw_audio/testsoundmono.mp3")
+snd = "raw_audio/testsoundmono.mp3"
 
 # Pick a noise-only segment (e.g., first 250 ms).
-snd_denoised = denoise_sound_praat_remove_noise(
+snd_denoised, s_hz = denoise_sound_praat_remove_noise(
     snd,
     noise_start_s=0.00,
     noise_end_s=0.25,
@@ -48,4 +52,4 @@ snd_denoised = denoise_sound_praat_remove_noise(
     smoothing_hz=40.0
 )
 
-snd_denoised.save("processed_audio/denoised.wav", "WAV")
+# snd_denoised.save("processed_audio/denoised.wav", "WAV")

@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 
 #RELATIVE ENERGY FOR FORMANT 3 SHOULD BE MORE NEGATIVE WITH DEPRESSED PATIENTS
 
-# snd = parselmouth.Sound("raw_audio/hoarse_test_voice.wav") #  THIS IS AN OUTLIER SINCE THE HAORSE TEST VOICE FUNDAMENTAL FREQUENCY WAS ALL OVER THE PLACE. WE WILL NEED ANOTHER METHOD TO EXTRACT WHEN A PERSON IS TALKING.
-snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # mean_rel_energy_f_3: -37.54012983676498
-# snd = parselmouth.Sound("raw_audio/high_pitch.wav") # mean_rel_energy_f_3: -35.545650404064226 (CORRECT: EXPECTED VALUE TO BE SMALLER IN MAGNITUDE --> ratio is larger --> more f3, which is correct!)
+# snd = "raw_audio/hoarse_test_voice.wav" #  THIS IS AN OUTLIER SINCE THE HAORSE TEST VOICE FUNDAMENTAL FREQUENCY WAS ALL OVER THE PLACE. WE WILL NEED ANOTHER METHOD TO EXTRACT WHEN A PERSON IS TALKING.
+snd = "raw_audio/testsoundmono.mp3" # mean_rel_energy_f_3: -37.54012983676498
+# snd = "raw_audio/high_pitch.wav" # mean_rel_energy_f_3: -35.545650404064226 (CORRECT: EXPECTED VALUE TO BE SMALLER IN MAGNITUDE --> ratio is larger --> more f3, which is correct!)
 
 def relative_energy_formant(
-    sound: parselmouth.Sound,
+    sound_path: str, 
     formant: int, # the formant frequency whose relative energy is to be extracted
     time_step: float = 0.01,
     max_formant_hz: float = 5500.0,
@@ -32,6 +32,14 @@ def relative_energy_formant(
       rel_energy_f_i: np.ndarray (linear ratio, or dB if return_db=True)
       mean_rel_energy_f_i: float
     """
+    
+    
+    sound = parselmouth.Sound(sound_path)
+    
+    sampling_hz = sound.sampling_frequency
+    
+    # if(sampling_hz != 44100):
+    #   raise ValueError("Sampling Hz is not 44.1 kHz")
     
     # default values based on paper for bandwidth hz: (Link to paper: https://www.isca-archive.org/eurospeech_1999/karlsson99_eurospeech.pdf)
     formant_to_bandwidth_hz = {1: 60, 2: 90, 3: 150, 4: 200}
@@ -87,11 +95,10 @@ def relative_energy_formant(
       relative_energies = 10 * np.log10(relative_energies)
     mean_rel_energy_f_i = np.mean(relative_energies)
     
-    return times, relative_energies, mean_rel_energy_f_i
+    return times, relative_energies, mean_rel_energy_f_i, sampling_hz
       
     
-ts, relative_energies, mean_rel_energy_f_3 = relative_energy_formant(snd, 3)
-
+ts, relative_energies, mean_rel_energy_f_3, sampling_hz = relative_energy_formant(snd, 3)
 
 #__________TESTING___________
 # print(mean_rel_energy_f_3)

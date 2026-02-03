@@ -3,13 +3,13 @@ import numpy as np
 from numpy.linalg import lstsq
 import matplotlib.pyplot as plt
 
-# snd = parselmouth.Sound("raw_audio/hoarse_test_voice.wav") # pitch mean: 287.3200488390224 (couldn't reliably find pitch though)
-snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # pitch mean: 116
+# snd = "raw_audio/hoarse_test_voice.wav" # pitch mean: 287.3200488390224 (couldn't reliably find pitch though)
+snd = "raw_audio/testsoundmono.mp3" # pitch mean: 116
 
 
 
 def pitches(
-    sound: parselmouth.Sound,
+    sound_path: str,
     time_step: float = 0.01,
     pitch_floor: float = 75.0,
     pitch_ceiling: float = 500.0,
@@ -22,6 +22,8 @@ def pitches(
       f0_lstsq_intercept: float
     """
     
+    sound = parselmouth.Sound(sound_path)
+    sampling_hz = sound.sampling_frequency
     #uses praat's autocorrelation method (instead of cc [cross correlation]) 
     
     pitch = sound.to_pitch(time_step=time_step, pitch_floor=pitch_floor, pitch_ceiling=pitch_ceiling) 
@@ -42,10 +44,10 @@ def pitches(
     f0_lstsq_slope = lstsqsoln[0] #measure referenced in paper as a strong feature
     f0_lstsq_intercept = lstsqsoln[1]
     
-    return nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept
+    return nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, sampling_hz
 
 
-nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept = pitches(snd)
+nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, s_hz = pitches(snd)
 print("Pitch mean:", np.mean(nonzero_f0_values))
 
 #__________TESTING___________

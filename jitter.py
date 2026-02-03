@@ -3,13 +3,13 @@ import parselmouth
 from parselmouth.praat import call
 import matplotlib.pyplot as plt
 
-# snd = parselmouth.Sound("raw_audio/hoarse_test_voice.wav") # jitter value: 0.07892894876979728 (higher, as expected)
-snd = parselmouth.Sound("raw_audio/testsoundmono.mp3") # jitter value: 0.02721768951093052
-# snd = parselmouth.Sound("raw_audio/high_pitch.wav")
+# snd = "raw_audio/hoarse_test_voice.wav" # jitter value: 0.07892894876979728 (higher, as expected)
+snd = "raw_audio/testsoundmono.mp3" # jitter value: 0.02721768951093052
+# snd = "raw_audio/high_pitch.wav"
 
 
 def jitter(
-    sound: parselmouth.Sound,
+    sound_path: str,
     kind : str = "local",
     pitch_floor: float = 75.0, #currently set to 75Hz, seems to work well
     pitch_ceiling: float = 500.0,
@@ -25,6 +25,9 @@ def jitter(
     
     kind options: "local", "local, absolute", "rap", "ppq5", "ddp"
     """
+    
+    sound = parselmouth.Sound(sound_path)
+    sampling_hz = sound.sampling_frequency
 
     if kind not in ["local", "local, absolute", "rap", "ppq5", "ddp"]:
         raise ValueError("Kind option not one of those allowed. Look at docstring for kind options.")
@@ -43,8 +46,8 @@ def jitter(
         maximum_period_factor,
     )
     
-    return jtr
+    return jtr, sampling_hz
 
-jtr_val = jitter(snd)
+jtr_val, s_hz = jitter(snd)
 
 print(jtr_val)
