@@ -3,6 +3,9 @@ import parselmouth
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import time
+import os
+import csv
 
 sns.set_theme() # Use seaborn's default style to make attractive graphs
 plt.rcParams['figure.dpi'] = 100 # Show nicely large images in this notebook

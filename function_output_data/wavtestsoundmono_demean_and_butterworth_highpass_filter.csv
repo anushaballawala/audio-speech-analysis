@@ -1,0 +1,2 @@
+sound_path,output_path,sample_rate_hz,cutoff_hzorder,elapsed_seconds
+wavtestsoundmono.wav,wavtestsoundmono_demeaned_and_butterworth.wav,44100,80,5,0.009316

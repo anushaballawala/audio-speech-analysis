@@ -2,6 +2,9 @@ import parselmouth
 import numpy as np
 from numpy.linalg import lstsq
 import matplotlib.pyplot as plt
+import time
+import os
+import csv
 
 # snd = "raw_audio/hoarse_test_voice.wav" # pitch mean: 287.3200488390224 (couldn't reliably find pitch though)
 snd = "raw_audio/testsoundmono.mp3" # pitch mean: 116

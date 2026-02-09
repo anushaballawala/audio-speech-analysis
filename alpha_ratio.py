@@ -2,6 +2,9 @@ import parselmouth
 import numpy as np
 from numpy.linalg import lstsq
 import matplotlib.pyplot as plt
+import time
+import os
+import csv
 
 # # snd = "raw_audio/hoarse_test_voice.wav"
 snd = "raw_audio/testsoundmono.mp3" # gives mean alpha ratio 5976.599 (w/out log10), 2.079 w/ log10

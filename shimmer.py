@@ -4,6 +4,9 @@ import numpy as np
 import parselmouth
 from parselmouth.praat import call
 import matplotlib.pyplot as plt
+import time
+import os
+import csv
 
 snd = "raw_audio/hoarse_test_voice.wav" # apq5 shimmer value: 0.11146423422694232 (higher, as expected)
 # snd = "raw_audio/testsoundmono.mp3" # apq5 shimmer value: 0.05805759435795879
@@ -51,6 +54,4 @@ def shimmer_apqN(
 
 apq5_shimmer, s_hz = shimmer_apqN(snd, 5)
 print(apq5_shimmer)
-    
-    
     

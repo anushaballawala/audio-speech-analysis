@@ -2,6 +2,9 @@ import numpy as np
 import parselmouth
 from parselmouth.praat import call
 import matplotlib.pyplot as plt
+import time
+import os
+import csv
 
 
 #RELATIVE ENERGY FOR FORMANT 3 SHOULD BE MORE NEGATIVE WITH DEPRESSED PATIENTS
