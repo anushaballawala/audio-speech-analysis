@@ -163,7 +163,7 @@ def demean_and_butterworth_highpass_filter(
             "sound_path",
             "output_path",
             "sample_rate_hz",
-            "cutoff_hz"
+            "cutoff_hz",
             "order",
             "elapsed_seconds",
         ])
@@ -184,10 +184,4 @@ def demean_and_butterworth_highpass_filter(
 
 # demean_wav_sound(snd, "processed_audio/wavtestsoundmono_demeaned.wav")
 # wav_butterworth_highpass_filter(snd, "processed_audio/wavtestsoundmono_butterworth.wav")
-# demean_and_butterworth_highpass_filter(snd, "processed_audio/wavtestsoundmono_demeaned_and_butterworth.wav", "function_output_data")
-
-    
-
-
-
-
+demean_and_butterworth_highpass_filter(snd, "processed_audio/wavtestsoundmono_demeaned_and_butterworth.wav", "function_output_data")

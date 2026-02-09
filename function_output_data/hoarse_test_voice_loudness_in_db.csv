@@ -1,0 +1,2 @@
+sound_path,sample_rate_hz,time_step,pitch_floor,subtract_mean,activity_threshold_db,active_intensity_vals_mean,elapsed_seconds
+hoarse_test_voice.wav,44100.0,0.01,75.0,True,40.0,50.647534926302136,0.006369

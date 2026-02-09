@@ -13,18 +13,31 @@ snd = "raw_audio/testsoundmono.mp3" # gives mean alpha ratio 5976.599 (w/out log
 
 def alpha_ratio( #TODO ask if I should add masking to alpha_ratio
     sound_path: str,
+    csv_folder_name: str,
     time_step: float = 0.01, 
     window_length: float = 0.025,
     f_low1: float = 50.0,
     f_high1: float = 1000.0,
     f_low2: float = 1000.0,
-    f_high2: float = 5000.0
+    f_high2: float = 5000.0,
+    stats: bool = True
 ):
     """
-     Linear alpha ratio per frame:
+    Linear alpha ratio per frame:
          alpha(t) = log10(sum(E[50-1000 Hz]) / sum(E[1000-5000 Hz]))
+         
+    Args:
+    sound_path: path to .csv sound file
+    csv_folder_name (str): name of folder where stats csv file should be placed (doesn't matter if stats is False).
+    stats (bool): Whether the function should output a csv including time taken to execute and other metadata.
+    
      Returns: times (s), alpha_ratio_per_frame, alpha_ratio_mean
     """
+    if(stats):
+        start_time = time.perf_counter()
+        wav_base = os.path.splitext(os.path.basename(sound_path))[0]
+        func_name = alpha_ratio.__name__
+        stats_csv_file_name = f"{csv_folder_name}/{wav_base}_{func_name}.csv"
     
     sound = parselmouth.Sound(sound_path)
     sampling_hz = sound.sampling_frequency
@@ -53,10 +66,39 @@ def alpha_ratio( #TODO ask if I should add masking to alpha_ratio
     
     alpha_ratio_mean = np.mean(alpha_ratios)
     
+    if stats:
+        # Timing:
+        elapsed_sec = time.perf_counter() - start_time
+        with open(stats_csv_file_name, "x", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "sound_path",
+                "sample_rate_hz",
+                "time_step",
+                "window_length",
+                "f_low1",
+                "f_high1",
+                "f_low2",
+                "f_high2",
+                "alpha_ratio_mean",
+                "elapsed_seconds",
+            ])
+            writer.writerow([
+                os.path.basename(sound_path),
+                sampling_hz,
+                time_step,
+                window_length,
+                f_low1,
+                f_high1,
+                f_low2,
+                f_high2,
+                alpha_ratio_mean,
+                f"{elapsed_sec:.6f}",
+            ])
     return times, alpha_ratios, alpha_ratio_mean, sampling_hz
     
 
-ts, ratios, alpha_ratio_mean, s_hz = alpha_ratio(snd)
+ts, ratios, alpha_ratio_mean, s_hz = alpha_ratio(snd, 'function_output_data')
 
 
 #__________TESTING___________

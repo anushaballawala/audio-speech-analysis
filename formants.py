@@ -15,6 +15,7 @@ snd = "raw_audio/testsoundmono.mp3" # mean_rel_energy_f_3: -43.187290370551345
 
 def relative_energy_formant(
     sound_path: str, 
+    csv_folder_name: str,
     formant: int, # the formant frequency whose relative energy is to be extracted
     time_step: float = 0.01,
     max_formant_hz: float = 5500.0,
@@ -27,7 +28,8 @@ def relative_energy_formant(
     pitch_floor: float = 75.0, # PITCH FLOOR AND CEILING ARE FOR DETERMINING FRAMES WHEN A PERSON IS SPEAKING CALCULATED USING NONZERO F0 VALUES. FIXME ASK ABOUT PITCH FLOOR/CELING VALUES TO BE USED; PITCH MIN WAS AN IMPORTANT FEATURE IN DETERMINING DIFFERENCES (w/ 27.5 min pitch was 28.3 With 75 min pitch was around 96.5); 27.5 looks like it creates outliers
     pitch_ceiling: float = 500.0,
     f_i_bandwidth_hz: float = -1,   # get energies +/- f_i_bandwidth_hz/2 Hz around f_i to capture all f_i energy; for defaults, use -1. 
-    return_db: bool = True  # if True, returns 10*log_10(relative_energy)
+    return_db: bool = True,  # if True, returns 10*log_10(relative_energy)
+    stats: bool = True
 ):
     """
     Returns:
@@ -35,7 +37,11 @@ def relative_energy_formant(
       rel_energy_f_i: np.ndarray (linear ratio, or dB if return_db=True)
       mean_rel_energy_f_i: float
     """
-    
+    if(stats):
+        start_time = time.perf_counter()
+        wav_base = os.path.splitext(os.path.basename(sound_path))[0]
+        func_name = relative_energy_formant.__name__
+        stats_csv_file_name = f"{csv_folder_name}/{wav_base}_{func_name}.csv"
     
     sound = parselmouth.Sound(sound_path)
     
@@ -90,17 +96,58 @@ def relative_energy_formant(
       f_i_summed_power = np.sum(f_i_frequency_PSDs)
       
       frame_summed_power = np.sum(frequency_PSDs[:, j])
-      
+  
       relative_energies.append(f_i_summed_power / frame_summed_power) # ok to use direct summed powers since it gives the same ratio as energies since frequency bins cancel out
     
     if(return_db):
       relative_energies = 10 * np.log10(relative_energies)
     mean_rel_energy_f_i = np.mean(relative_energies)
     
+    if stats:
+        # Timing:
+        elapsed_sec = time.perf_counter() - start_time
+        with open(stats_csv_file_name, "x", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "sound_path",
+                "sample_rate_hz",
+                "time_step",
+                "max_formant_hz",
+                "n_formants",
+                "formant_window_length",
+                "pre_emphasis_from_hz",
+                "spec_window_length",
+                "max_freq_hz",
+                "pitch_floor",
+                "pitch_ceiling",
+                "f_i_bandwidth_hz",
+                "return_db",
+                "mean_rel_energy_f_i",
+                "elapsed_seconds",
+            ])
+            writer.writerow([
+                os.path.basename(sound_path),
+                sampling_hz,
+                time_step,
+                f"{elapsed_sec:.6f}",
+                max_formant_hz,
+                n_formants,
+                formant_window_length,
+                pre_emphasis_from_hz,
+                spec_window_length,
+                max_freq_hz,
+                pitch_floor,
+                pitch_ceiling,
+                f_i_bandwidth_hz,
+                return_db,
+                mean_rel_energy_f_i,
+                f"{elapsed_sec:.6f}",
+            ])
+    
     return speaking_times, relative_energies, mean_rel_energy_f_i, sampling_hz
       
     
-ts, relative_energies, mean_rel_energy_f_3, sampling_hz = relative_energy_formant(snd, 3)
+ts, relative_energies, mean_rel_energy_f_3, sampling_hz = relative_energy_formant(snd, 'function_output_data', 3)
 
 #__________TESTING___________
 # print(mean_rel_energy_f_3)

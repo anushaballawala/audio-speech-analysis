@@ -1,0 +1,2 @@
+sound_path,sample_rate_hz,time_step,pitch_floor,pitch_ceiling,f0_lstsq_slope,pitch_mean,elapsed_seconds
+testsoundmono.mp3,44100.0,0.01,75.0,500.0,-12.656746316179712,116.01628838952972,0.004742

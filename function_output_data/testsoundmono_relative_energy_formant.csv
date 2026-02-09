@@ -1,0 +1,2 @@
+sound_path,sample_rate_hz,time_step,max_formant_hz,n_formants,formant_window_length,pre_emphasis_from_hz,spec_window_length,max_freq_hz,pitch_floor,pitch_ceiling,f_i_bandwidth_hz,return_db,mean_rel_energy_f_i,elapsed_seconds
+testsoundmono.mp3,44100.0,0.01,0.054643,5500.0,5,0.025,50.0,0.025,5000.0,75.0,500.0,150,True,-43.187290370551345,0.054643

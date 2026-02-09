@@ -1,0 +1,2 @@
+sound_path,sample_rate_hz,time_step,window_length,f_low1,f_high1,f_low2,f_high2,alpha_ratio_mean,elapsed_seconds
+testsoundmono.mp3,44100.0,0.01,0.025,50.0,1000.0,1000.0,5000.0,2.0790126301055936,0.008959

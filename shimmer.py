@@ -14,6 +14,7 @@ snd = "raw_audio/hoarse_test_voice.wav" # apq5 shimmer value: 0.1114642342269423
 
 def shimmer_apqN(
     sound_path: str,
+    csv_folder_name: str,
     N: int, # N can only be 3, 5, or 11
     *,
     pitch_floor: float = 75.0, 
@@ -25,6 +26,7 @@ def shimmer_apqN(
     period_ceiling: float = 0.02,
     maximum_period_factor: float = 1.3,
     maximum_amplitude_factor: float = 1.6,
+    stats: bool = True
 ) -> float:
     """
     Compute N-point Amplitude Perturbation Quotient (aqpN shimmer)
@@ -32,6 +34,12 @@ def shimmer_apqN(
     
     sound = parselmouth.Sound(sound_path)
     sampling_hz = sound.sampling_frequency
+    
+    if(stats):
+        start_time = time.perf_counter()
+        wav_base = os.path.splitext(os.path.basename(sound_path))[0]
+        func_name = shimmer_apqN.__name__
+        stats_csv_file_name = f"{csv_folder_name}/{wav_base}_{func_name}.csv"
     
     if N not in [3, 5, 11]:
         raise ValueError("N can only be 3, 5, or 11")
@@ -50,8 +58,46 @@ def shimmer_apqN(
         maximum_period_factor,
         maximum_amplitude_factor,
     )
+    
+    
+    if stats:
+        # Timing:
+        elapsed_sec = time.perf_counter() - start_time
+        with open(stats_csv_file_name, "x", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "sound_path",
+                "sample_rate_hz",
+                "pitch_floor",
+                "pitch_ceiling",
+                "pitch_time_step",
+                "from_time",
+                "to_time",
+                "period_floor",
+                "period_ceiling",
+                "maximum_period_factor",
+                "maximum_amplitude_factor",
+                "shimmer_val"
+                "elapsed_seconds"
+            ])
+            writer.writerow([
+                os.path.basename(sound_path),
+                sampling_hz,
+                pitch_floor,
+                pitch_ceiling,
+                pitch_time_step,
+                from_time,
+                to_time,
+                period_floor,
+                period_ceiling,
+                maximum_period_factor,
+                maximum_amplitude_factor,
+                apqN,
+                f"{elapsed_sec:.6f}",
+            ])
+            
     return apqN, sampling_hz
 
-apq5_shimmer, s_hz = shimmer_apqN(snd, 5)
+apq5_shimmer, s_hz = shimmer_apqN(snd, 'function_output_data', 5)
 print(apq5_shimmer)
     
