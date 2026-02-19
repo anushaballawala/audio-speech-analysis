@@ -1,1 +1,4 @@
 .DS_Store
+/patient_raw_audio/
+/patient_processed_audio/
+/patient_function_output_data/

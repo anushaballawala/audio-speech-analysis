@@ -39,6 +39,9 @@ def alpha_ratio( #TODO ask if I should add masking to alpha_ratio
         func_name = alpha_ratio.__name__
         stats_csv_file_name = f"{csv_folder_name}/{wav_base}_{func_name}.csv"
     
+    #NEW: FOR MASKING USING F0 (PITCH):
+    # pitch = sound.to_pitch(time_step=time_step, pitch_floor=pitch_floor, pitch_ceiling=pitch_ceiling)
+    
     sound = parselmouth.Sound(sound_path)
     sampling_hz = sound.sampling_frequency
     

@@ -10,9 +10,8 @@ from parselmouth.praat import call
 import matplotlib.pyplot as plt
 
 # snd = "raw_audio/hoarse_test_voice.wav"
-snd = "raw_audio/wavtestsoundmono.wav" 
+# snd = "raw_audio/wavtestsoundmono.wav" 
 # snd = "raw_audio/high_pitch.wav"
-
 
 
 def demean_wav_sound(sound_path, output_path):
@@ -177,6 +176,16 @@ def demean_and_butterworth_highpass_filter(
         ])
 
     
+if __name__ == "__main__":
+    
+    patient_raw_data_directory = 'patient_raw_audio/'
+    patient_processed_data_directory = 'patient_processed_audio/'
+    patient_function_output_directory = 'patient_function_output_data'
+    
+    for num in range(579, 580):
+        audio_name = str(num) + '_audio.wav'
+        audio_name_without_wav = str(num) + '_audio'
+        demean_and_butterworth_highpass_filter(patient_raw_data_directory + audio_name, patient_processed_data_directory + audio_name_without_wav + '_demeaned_and_butterworth.wav', patient_function_output_directory)
     
     
 
@@ -184,4 +193,4 @@ def demean_and_butterworth_highpass_filter(
 
 # demean_wav_sound(snd, "processed_audio/wavtestsoundmono_demeaned.wav")
 # wav_butterworth_highpass_filter(snd, "processed_audio/wavtestsoundmono_butterworth.wav")
-demean_and_butterworth_highpass_filter(snd, "processed_audio/wavtestsoundmono_demeaned_and_butterworth.wav", "function_output_data")
+# demean_and_butterworth_highpass_filter(snd, "processed_audio/wavtestsoundmono_demeaned_and_butterworth.wav", "function_output_data")
