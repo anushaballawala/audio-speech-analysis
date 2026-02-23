@@ -178,14 +178,14 @@ def demean_and_butterworth_highpass_filter(
     
 if __name__ == "__main__":
     
-    patient_raw_data_directory = 'patient_raw_audio/'
-    patient_processed_data_directory = 'patient_processed_audio/'
-    patient_function_output_directory = 'patient_function_output_data'
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
+    patient_processed_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc/'
+    patient_function_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_metadata'
     
     for num in range(579, 580):
         audio_name = str(num) + '_audio.wav'
-        audio_name_without_wav = str(num) + '_audio'
-        demean_and_butterworth_highpass_filter(patient_raw_data_directory + audio_name, patient_processed_data_directory + audio_name_without_wav + '_demeaned_and_butterworth.wav', patient_function_output_directory)
+        audio_name_without_wav = str(num)
+        demean_and_butterworth_highpass_filter(patient_raw_data_directory + audio_name, patient_processed_data_directory + 'sub-PR05_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav', patient_function_output_directory)
     
     
 
