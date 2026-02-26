@@ -7,7 +7,7 @@ import csv
 from scipy.signal import butter, sosfiltfilt
 from scipy.io import wavfile
 from parselmouth.praat import call
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 # snd = "raw_audio/hoarse_test_voice.wav"
 # snd = "raw_audio/wavtestsoundmono.wav" 
@@ -182,10 +182,11 @@ if __name__ == "__main__":
     patient_processed_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc/'
     patient_function_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_metadata'
     
-    for num in range(579, 580):
+    for num in range(581, 611):
         audio_name = str(num) + '_audio.wav'
         audio_name_without_wav = str(num)
-        demean_and_butterworth_highpass_filter(patient_raw_data_directory + audio_name, patient_processed_data_directory + 'sub-PR05_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav', patient_function_output_directory)
+        if os.path.exists(patient_raw_data_directory + audio_name):
+            demean_and_butterworth_highpass_filter(patient_raw_data_directory + audio_name, patient_processed_data_directory + 'sub-PR05_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav', patient_function_output_directory)
     
     
 
