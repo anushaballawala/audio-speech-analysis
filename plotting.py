@@ -92,17 +92,14 @@ def save_spectrogram_plot(audio_path,
     plt.close()
 
 def main():
-    audio_folder = "raw_audio"
-    output_folder = "plots"
-    save_waveform_plot('raw_audio/high_pitch.wav', 'plots', '')
 
-    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
+    # patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc/'
     plot_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_raw_audio_plots'
-    # patient_function_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_metadata'
     
     for num in range(579, 611):
-        audio_name = str(num) + '_audio.wav'
-        audio_name_without_wav = str(num)
+        # audio_name = str(num) + '_audio.wav'
+        audio_name = 'sub-PR05_stage-2_audio-athome_signal-preproc_' + str(num) + '.wav'
         if os.path.exists(patient_raw_data_directory + audio_name):
             save_waveform_plot(patient_raw_data_directory + audio_name, plot_output_directory)
             save_spectrogram_plot(patient_raw_data_directory + audio_name, plot_output_directory)

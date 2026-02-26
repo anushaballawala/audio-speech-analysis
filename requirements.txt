@@ -2,3 +2,4 @@ parselmouth
 numpy
 scipy
 matplotlib
+seaborn

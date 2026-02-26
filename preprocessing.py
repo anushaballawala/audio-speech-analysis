@@ -9,10 +9,6 @@ from scipy.io import wavfile
 from parselmouth.praat import call
 # import matplotlib.pyplot as plt
 
-# snd = "raw_audio/hoarse_test_voice.wav"
-# snd = "raw_audio/wavtestsoundmono.wav" 
-# snd = "raw_audio/high_pitch.wav"
-
 
 def demean_wav_sound(sound_path, output_path):
     """
