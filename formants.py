@@ -10,7 +10,7 @@ import csv
 #RELATIVE ENERGY FOR FORMANT 3 SHOULD BE MORE NEGATIVE WITH DEPRESSED PATIENTS
 
 # snd = "raw_audio/hoarse_test_voice.wav" #  THIS IS AN OUTLIER SINCE THE HAORSE TEST VOICE FUNDAMENTAL FREQUENCY WAS ALL OVER THE PLACE. WE WILL NEED ANOTHER METHOD TO EXTRACT WHEN A PERSON IS TALKING.
-snd = "raw_audio/testsoundmono.mp3" # mean_rel_energy_f_3: -43.187290370551345
+# snd = "raw_audio/testsoundmono.mp3" # mean_rel_energy_f_3: -43.187290370551345
 # snd = "raw_audio/high_pitch.wav" # mean_rel_energy_f_3: -37.68999286239633 (CORRECT: EXPECTED VALUE TO BE SMALLER IN MAGNITUDE --> ratio is larger --> more f3, which is correct!)
 
 def relative_energy_formant(
@@ -172,7 +172,62 @@ def relative_energy_formant(
     return np.array(speaking_times), np.array(relative_energies), mean_rel_energy_f_i, sampling_hz
       
     
-ts, relative_energies, mean_rel_energy_f_3, sampling_hz = relative_energy_formant(snd, 'function_output_data', 3)
+
+
+def save_f3_plot(
+    ts: np.ndarray,
+    relative_energies: np.ndarray,
+    mean_rel_energy_f_3: float,
+    output_path: str,
+):
+    """Save the f3 relative energy plot in the same format as the TESTING section."""
+    if ts.size == 0 or relative_energies.size == 0:
+        return
+
+    plt.figure()
+    plt.scatter(ts, relative_energies, color='blue', label='Data Points')
+    plt.axhline(y=mean_rel_energy_f_3, color='r', linestyle='-',
+                label=f'f3 relative energy mean: {mean_rel_energy_f_3}')
+    plt.title("f3 relative energy over time")
+    plt.xlabel("Time (in seconds)")
+    plt.ylabel("f3 relative energy")
+    plt.legend()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+
+def main():
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
+
+    f3_csv_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_f3_metadata'
+    f3_plot_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_f3_plots'
+
+    os.makedirs(f3_csv_output_directory, exist_ok=True)
+    os.makedirs(f3_plot_output_directory, exist_ok=True)
+
+    for num in range(579, 611):
+        audio_name_without_wav = str(num)
+        audio_name = audio_name_without_wav + '_audio.wav'
+        sound_path = os.path.join(patient_raw_data_directory, audio_name)
+
+        if not os.path.exists(sound_path):
+            continue
+
+        ts, relative_energies, mean_rel_energy_f_3, sampling_hz = relative_energy_formant(
+            sound_path,
+            f3_csv_output_directory,
+            3,
+        )
+
+        plot_path = os.path.join(
+            f3_plot_output_directory,
+            'sub-PR05_stage-2_audio-audiotype_preproc_' + audio_name_without_wav + '_f3.png'
+        )
+        save_f3_plot(ts, relative_energies, mean_rel_energy_f_3, plot_path)
+
+
+if __name__ == "__main__":
+    main()
 
 #__________TESTING___________
 # print(mean_rel_energy_f_3)
