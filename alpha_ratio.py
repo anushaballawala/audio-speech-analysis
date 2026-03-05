@@ -146,14 +146,66 @@ def alpha_ratio( #TODO ask if I should add masking to alpha_ratio
                         f"{float(a):.6f}",
                     ])
     return speaking_times, alpha_ratios, alpha_ratio_mean, sampling_hz
-    
 
-ts, ratios, alpha_ratio_mean, s_hz = alpha_ratio(snd, 'function_output_data')
+
+def save_alpha_ratio_plot(
+    ts: np.ndarray,
+    ratios: np.ndarray,
+    alpha_ratio_mean: float,
+    output_path: str,
+):
+    """Save alpha ratio plot in the same format as the TESTING section."""
+    if ts.size == 0 or ratios.size == 0:
+        return
+
+    plt.figure()
+    plt.scatter(ts, ratios, color='blue', label='Data Points')
+    plt.axhline(y=alpha_ratio_mean, color='r', linestyle='-',
+                label=f'Alpha ratio mean: {alpha_ratio_mean}')
+    plt.title("Alpha ratios over time")
+    plt.xlabel("Time (in seconds)")
+    plt.ylabel("Alpha ratio")
+    plt.legend()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+
+def main():
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
+
+    alpha_ratio_csv_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_alpha_ratio_metadata'
+    alpha_ratio_plot_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_alpha_ratio_plots'
+
+    os.makedirs(alpha_ratio_csv_output_directory, exist_ok=True)
+    os.makedirs(alpha_ratio_plot_output_directory, exist_ok=True)
+
+    for num in range(579, 611):
+        audio_name_without_wav = str(num)
+        audio_name = audio_name_without_wav + '_audio.wav'
+        sound_path = os.path.join(patient_raw_data_directory, audio_name)
+
+        if not os.path.exists(sound_path):
+            continue
+
+        ts, ratios, alpha_ratio_mean, s_hz = alpha_ratio(
+            sound_path,
+            alpha_ratio_csv_output_directory,
+        )
+
+        plot_path = os.path.join(
+            alpha_ratio_plot_output_directory,
+            'sub-PR05_stage-2_audio-audiotype_preproc_' + audio_name_without_wav + '_alpha_ratio.png'
+        )
+        save_alpha_ratio_plot(ts, ratios, alpha_ratio_mean, plot_path)
+
+
+if __name__ == "__main__":
+    main()
 
 
 #__________TESTING___________
 
-print(alpha_ratio_mean)
+# print(alpha_ratio_mean)
 # plt.scatter(ts, ratios, color='blue', label='Data Points')
 # plt.axhline(y=alpha_ratio_mean, color='r', linestyle='-', label=f'Alpha ratio mean: {alpha_ratio_mean}')
 # plt.title("Alpha ratios over time")
