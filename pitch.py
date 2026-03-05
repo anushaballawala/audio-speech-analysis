@@ -105,7 +105,65 @@ def pitches(
     return nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, sampling_hz
 
 
-nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, s_hz = pitches(snd, 'function_output_data')
+# Save a pitch scatter plot + line of best fit in the same format as the TESTING section.
+def save_pitch_plot(
+    nonzero_xs: np.ndarray,
+    nonzero_f0_values: np.ndarray,
+    f0_lstsq_slope: float,
+    f0_lstsq_intercept: float,
+    output_path: str,
+):
+    """Save a pitch scatter plot + line of best fit in the same format as the TESTING section."""
+    if nonzero_xs.size == 0 or nonzero_f0_values.size == 0:
+        return
+
+    line_y_values = f0_lstsq_slope * nonzero_xs + f0_lstsq_intercept
+    plt.figure()
+    plt.scatter(nonzero_xs, nonzero_f0_values, color='blue', label='Data Points')
+    plt.plot(nonzero_xs, line_y_values, color='red', linestyle='-', label='Line of Best Fit')
+    plt.title("Nonzero f0 values")
+    plt.xlabel("Time (in seconds)")
+    plt.ylabel("Hertz")
+    plt.legend()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+
+ # nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, s_hz = pitches(snd, 'function_output_data')
+
+def main():
+    # Input directory and naming convention must match the provided patient script
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
+
+    # Output directories (as requested)
+    pitch_csv_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_pitch_metadata'
+    pitch_plot_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_pitch_plots'
+
+    os.makedirs(pitch_csv_output_directory, exist_ok=True)
+    os.makedirs(pitch_plot_output_directory, exist_ok=True)
+
+    for num in range(579, 611):
+        audio_name_without_wav = str(num)
+        audio_name = audio_name_without_wav + '_audio.wav'
+        sound_path = os.path.join(patient_raw_data_directory, audio_name)
+
+        if not os.path.exists(sound_path):
+            continue
+
+        nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, s_hz = pitches(
+            sound_path,
+            pitch_csv_output_directory,
+        )
+
+        plot_path = os.path.join(
+            pitch_plot_output_directory,
+            'sub-PR05_stage-2_audio-audiotype_preproc_' + audio_name_without_wav + '_pitch.png'
+        )
+        save_pitch_plot(nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, plot_path)
+
+
+if __name__ == "__main__":
+    main()
 
 
 #__________TESTING___________
