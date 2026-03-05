@@ -45,6 +45,8 @@ def pitches(
     nonzero_f0_values = f0_values[nonzero_mask]
     nonzero_xs = times[nonzero_mask]
 
+    pitch_mean = float(np.mean(nonzero_f0_values)) if nonzero_f0_values.size else float("nan")
+
     # least squares Ax = b
     A = np.column_stack((nonzero_xs, np.ones(len(nonzero_xs))))
     b = nonzero_f0_values
@@ -68,17 +70,37 @@ def pitches(
                 "f0_lstsq_slope",
                 "pitch_mean",
                 "elapsed_seconds",
+                "time_seconds",
+                "f0_hz",
             ])
-            writer.writerow([
-                os.path.basename(sound_path),
-                sampling_hz,
-                time_step,
-                pitch_floor,
-                pitch_ceiling,
-                f0_lstsq_slope,
-                np.mean(nonzero_f0_values),
-                f"{elapsed_sec:.6f}",
-            ])
+            if nonzero_xs.size == 0:
+                # No nonzero pitch frames: write a single row with metadata + blanks for time-varying columns.
+                writer.writerow([
+                    os.path.basename(sound_path),
+                    sampling_hz,
+                    time_step,
+                    pitch_floor,
+                    pitch_ceiling,
+                    f0_lstsq_slope,
+                    f"{pitch_mean:.6f}" if np.isfinite(pitch_mean) else "",
+                    f"{elapsed_sec:.6f}",
+                    "",
+                    "",
+                ])
+            else:
+                for i, (t, f0) in enumerate(zip(nonzero_xs, nonzero_f0_values)):
+                    writer.writerow([
+                        os.path.basename(sound_path) if i == 0 else "",
+                        sampling_hz if i == 0 else "",
+                        time_step if i == 0 else "",
+                        pitch_floor if i == 0 else "",
+                        pitch_ceiling if i == 0 else "",
+                        f"{f0_lstsq_slope:.6f}" if i == 0 else "",
+                        (f"{pitch_mean:.6f}" if np.isfinite(pitch_mean) else "") if i == 0 else "",
+                        f"{elapsed_sec:.6f}" if i == 0 else "",
+                        f"{t:.6f}",
+                        f"{f0:.3f}",
+                    ])
     
     return nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, sampling_hz
 

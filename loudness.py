@@ -9,7 +9,7 @@ import csv
 
 # BE CAREFUL BECAUSE LOUDNESS CAN CHANGE BASED ON MICROPHONE, AND LOUDNESS IS NOT ROBUST TO CONTEXT
 
-snd = "raw_audio/hoarse_test_voice.wav" # mean intensity was 50.64
+# snd = "raw_audio/hoarse_test_voice.wav" # mean intensity was 50.64
 # snd = "raw_audio/testsoundmono.mp3" # mean intensity was 57.78
 # snd = "raw_audio/high_pitch.wav"
 
@@ -44,7 +44,7 @@ def loudness_in_db(
     active_times = times[active_mask]
     active_intensity_vals = vals[active_mask]
     
-    active_intensity_vals_mean = np.mean(active_intensity_vals)
+    active_intensity_vals_mean = float(np.mean(active_intensity_vals)) if active_intensity_vals.size else float("nan")
     
     if stats:
         # Timing:
@@ -60,23 +60,42 @@ def loudness_in_db(
                 "activity_threshold_db",
                 "active_intensity_vals_mean",
                 "elapsed_seconds",
+                "time_seconds",
+                "intensity_db",
             ])
-            writer.writerow([
-                os.path.basename(sound_path),
-                sampling_hz,
-                time_step,
-                pitch_floor,
-                subtract_mean,
-                activity_threshold_db,
-                active_intensity_vals_mean,
-                f"{elapsed_sec:.6f}",
-            ])
+            if active_times.size == 0:
+                writer.writerow([
+                    os.path.basename(sound_path),
+                    sampling_hz,
+                    time_step,
+                    pitch_floor,
+                    subtract_mean,
+                    activity_threshold_db,
+                    f"{active_intensity_vals_mean:.6f}" if np.isfinite(active_intensity_vals_mean) else "",
+                    f"{elapsed_sec:.6f}",
+                    "",
+                    "",
+                ])
+            else:
+                for i, (t, v) in enumerate(zip(active_times, active_intensity_vals)):
+                    writer.writerow([
+                        os.path.basename(sound_path) if i == 0 else "",
+                        sampling_hz if i == 0 else "",
+                        time_step if i == 0 else "",
+                        pitch_floor if i == 0 else "",
+                        subtract_mean if i == 0 else "",
+                        activity_threshold_db if i == 0 else "",
+                        (f"{active_intensity_vals_mean:.6f}" if np.isfinite(active_intensity_vals_mean) else "") if i == 0 else "",
+                        f"{elapsed_sec:.6f}" if i == 0 else "",
+                        f"{t:.6f}",
+                        f"{v:.3f}",
+                    ])
     
     return active_times, active_intensity_vals, active_intensity_vals_mean, sampling_hz
     
+
     
-    
-ts, intensity, mean_intensity, s_hz = loudness_in_db(snd, 'function_output_data')
+# ts, intensity, mean_intensity, s_hz = loudness_in_db(snd, 'function_output_data')
 
 
 #__________TESTING___________
@@ -89,5 +108,3 @@ ts, intensity, mean_intensity, s_hz = loudness_in_db(snd, 'function_output_data'
 # plt.ylabel("Intensity (dB)")
 # plt.savefig("figures/loudnesshoarsevoice.png", dpi=300, bbox_inches='tight')
 # plt.show()
-
-    

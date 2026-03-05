@@ -83,7 +83,6 @@ def relative_energy_formant(
       f0 = pitch.get_value_at_time(float(t))
       if np.isnan(f0):
         continue #person is not speaking
-      speaking_times.append(t)
       
       f_i = call(formant_freqs, "Get value at time...", formant, float(t), "Hertz", "Linear") # value of formant_i in hz at time t
       if not np.isfinite(f_i) or f_i < 0 or f_i > max_freq_hz:
@@ -98,10 +97,11 @@ def relative_energy_formant(
       frame_summed_power = np.sum(frequency_PSDs[:, j])
   
       relative_energies.append(f_i_summed_power / frame_summed_power) # ok to use direct summed powers since it gives the same ratio as energies since frequency bins cancel out
+      speaking_times.append(t)
     
     if(return_db):
       relative_energies = 10 * np.log10(relative_energies)
-    mean_rel_energy_f_i = np.mean(relative_energies)
+    mean_rel_energy_f_i = float(np.mean(relative_energies)) if len(relative_energies) else float("nan")
     
     if stats:
         # Timing:
@@ -124,27 +124,52 @@ def relative_energy_formant(
                 "return_db",
                 "mean_rel_energy_f_i",
                 "elapsed_seconds",
+                "time_seconds",
+                "relative_energy",
             ])
-            writer.writerow([
-                os.path.basename(sound_path),
-                sampling_hz,
-                time_step,
-                f"{elapsed_sec:.6f}",
-                max_formant_hz,
-                n_formants,
-                formant_window_length,
-                pre_emphasis_from_hz,
-                spec_window_length,
-                max_freq_hz,
-                pitch_floor,
-                pitch_ceiling,
-                f_i_bandwidth_hz,
-                return_db,
-                mean_rel_energy_f_i,
-                f"{elapsed_sec:.6f}",
-            ])
+            if len(relative_energies) == 0:
+                writer.writerow([
+                    os.path.basename(sound_path),
+                    sampling_hz,
+                    time_step,
+                    max_formant_hz,
+                    n_formants,
+                    formant_window_length,
+                    pre_emphasis_from_hz,
+                    spec_window_length,
+                    max_freq_hz,
+                    pitch_floor,
+                    pitch_ceiling,
+                    f_i_bandwidth_hz,
+                    return_db,
+                    f"{mean_rel_energy_f_i:.6f}" if np.isfinite(mean_rel_energy_f_i) else "",
+                    f"{elapsed_sec:.6f}",
+                    "",
+                    "",
+                ])
+            else:
+                for i, (t, re) in enumerate(zip(speaking_times, relative_energies)):
+                    writer.writerow([
+                        os.path.basename(sound_path) if i == 0 else "",
+                        sampling_hz if i == 0 else "",
+                        time_step if i == 0 else "",
+                        max_formant_hz if i == 0 else "",
+                        n_formants if i == 0 else "",
+                        formant_window_length if i == 0 else "",
+                        pre_emphasis_from_hz if i == 0 else "",
+                        spec_window_length if i == 0 else "",
+                        max_freq_hz if i == 0 else "",
+                        pitch_floor if i == 0 else "",
+                        pitch_ceiling if i == 0 else "",
+                        f_i_bandwidth_hz if i == 0 else "",
+                        return_db if i == 0 else "",
+                        (f"{mean_rel_energy_f_i:.6f}" if np.isfinite(mean_rel_energy_f_i) else "") if i == 0 else "",
+                        f"{elapsed_sec:.6f}" if i == 0 else "",
+                        f"{float(t):.6f}",
+                        f"{float(re):.6f}",
+                    ])
     
-    return speaking_times, relative_energies, mean_rel_energy_f_i, sampling_hz
+    return np.array(speaking_times), np.array(relative_energies), mean_rel_energy_f_i, sampling_hz
       
     
 ts, relative_energies, mean_rel_energy_f_3, sampling_hz = relative_energy_formant(snd, 'function_output_data', 3)
