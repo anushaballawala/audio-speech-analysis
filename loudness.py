@@ -92,7 +92,62 @@ def loudness_in_db(
                     ])
     
     return active_times, active_intensity_vals, active_intensity_vals_mean, sampling_hz
-    
+
+
+def save_loudness_plot(
+    ts: np.ndarray,
+    intensity_db: np.ndarray,
+    mean_intensity_db: float,
+    output_path: str,
+):
+    """Save loudness plot in the same format as the TESTING section."""
+    if ts.size == 0 or intensity_db.size == 0:
+        return
+
+    plt.figure()
+    plt.scatter(ts, intensity_db, color='blue', label='Data Points')
+    plt.axhline(y=mean_intensity_db, color='r', linestyle='-',
+                label=f'Intensity mean: {mean_intensity_db}')
+    plt.title("Intensities over time")
+    plt.xlabel("Time (in seconds)")
+    plt.ylabel("Intensity (dB)")
+    plt.legend()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+
+def main():
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
+
+    loudness_csv_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_loudness_metadata'
+    loudness_plot_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_loudness_plots'
+
+    os.makedirs(loudness_csv_output_directory, exist_ok=True)
+    os.makedirs(loudness_plot_output_directory, exist_ok=True)
+
+    for num in range(579, 611):
+        audio_name_without_wav = str(num)
+        audio_name = audio_name_without_wav + '_audio.wav'
+        sound_path = os.path.join(patient_raw_data_directory, audio_name)
+
+        if not os.path.exists(sound_path):
+            continue
+
+        ts, intensity_db, mean_intensity_db, sampling_hz = loudness_in_db(
+            sound_path,
+            loudness_csv_output_directory,
+        )
+
+        plot_path = os.path.join(
+            loudness_plot_output_directory,
+            'sub-PR05_stage-2_audio-audiotype_preproc_' + audio_name_without_wav + '_loudness.png'
+        )
+        save_loudness_plot(ts, intensity_db, mean_intensity_db, plot_path)
+
+
+if __name__ == "__main__":
+    main()
+
 
     
 # ts, intensity, mean_intensity, s_hz = loudness_in_db(snd, 'function_output_data')
