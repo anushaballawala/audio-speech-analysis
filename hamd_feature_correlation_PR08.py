@@ -1,12 +1,11 @@
-"""Correlation + scatter plots of HAM-D / anxiety / MADRS scores vs voice features.
+"""HAM-D / VAS correlation + scatter plots vs voice features for PR08.
 
-Pulls per-subject summary stats from the four feature metadata directories
-(pitch, loudness, F3 relative energy, alpha ratio), merges with clinical
-scores from the "Stage 2 AudioScore Match" sheet of the PR05 filename
-workbook, and writes correlations + matplotlib plots.
+Audio files are numbered 1-69 (N_audio.m4a) and correspond directly to record_id in
+PR08PreStage2_DATA_2026-04-18_1616.csv (one row per record, both audio_task timestamp
+and completion_pt scores in the same row).
 
 Usage:
-    python hamd_feature_correlation.py
+    python hamd_feature_correlation_PR08.py
 """
 
 import re
@@ -18,31 +17,30 @@ import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
 BASE = Path("/userdata/msharma")
-XLSX = BASE / "PR05 List of Video Filenames.xlsx"
-SHEET = "Stage 2 AudioScore Match"
-RUN_PARENT = BASE / "sub-PR05-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
-OUT_DIR = RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_hamd_correlation"
+SCORES_CSV = BASE / "PR08PreStage2_DATA_2026-04-18_1616.csv"
+RUN_PARENT = BASE / "sub-PR08-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
+OUT_DIR = RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_hamd_correlation"
 
-SCORE_COLS = ["hamd_total", "vas_anxiety", "vas_depression", "madrs_total", "madrs_score"]
+SCORE_COLS = ["hamd_total", "vas_anxiety", "vas_depression", "vas_energy", "vas_lowenergy"]
 
 FEATURE_DIRS = {
     "pitch": (
-        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_pitch_metadata",
+        RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_pitch_metadata",
         "_pitches.csv",
         ["pitch_mean", "pitch_std", "pitch_median", "pitch_iqr"],
     ),
     "loudness": (
-        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_loudness_metadata",
+        RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_loudness_metadata",
         "_loudness_in_db.csv",
         ["active_intensity_vals_mean", "intensity_std", "intensity_median", "intensity_iqr"],
     ),
     "f3": (
-        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_f3_metadata",
+        RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_f3_metadata",
         "_relative_energy_formant.csv",
         ["mean_rel_energy_f_i", "rel_energy_std", "rel_energy_median", "rel_energy_iqr"],
     ),
     "alpha_ratio": (
-        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_alpha_ratio_metadata",
+        RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_alpha_ratio_metadata",
         "_alpha_ratio.csv",
         ["alpha_ratio_mean", "alpha_ratio_std", "alpha_ratio_median", "alpha_ratio_iqr"],
     ),
@@ -76,15 +74,11 @@ def build_feature_table() -> pd.DataFrame:
     return merged
 
 
-def load_scores() -> pd.DataFrame:
-    df = pd.read_excel(XLSX, sheet_name=SHEET)
-    df = df[df["Filename"].notna()].copy()
-    df["audio_id"] = df["Filename"].astype(str).str.extract(r"^(\d+)")[0]
+def load_scores_by_audio_id() -> pd.DataFrame:
+    df = pd.read_csv(SCORES_CSV)
+    df["audio_id"] = df["record_id"].astype(str)
     keep = ["audio_id"] + [c for c in SCORE_COLS if c in df.columns]
-    df = df[keep].dropna(subset=["audio_id"])
-    # Duplicate audio_ids: keep first non-null per score
-    df = df.groupby("audio_id", as_index=False).first()
-    return df
+    return df[keep]
 
 
 def correlate(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str]) -> pd.DataFrame:
@@ -160,11 +154,11 @@ def main():
     features = build_feature_table()
     features["audio_id"] = features["audio_id"].astype(str)
 
-    scores = load_scores()
+    scores = load_scores_by_audio_id()
     score_cols = [c for c in SCORE_COLS if c in scores.columns]
 
-    df = scores.merge(features, on="audio_id", how="inner")
-    print(f"Matched {len(df)} subjects (features={len(features)}, scores={len(scores)})")
+    df = features.merge(scores, on="audio_id", how="inner")
+    print(f"Matched {len(df)} audio files (features={len(features)}, scores={len(scores)})")
     df.to_csv(OUT_DIR / "merged_scores_features.csv", index=False)
 
     feature_cols = [c for c in features.columns if c != "audio_id"]

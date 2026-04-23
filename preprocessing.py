@@ -183,7 +183,7 @@ def demean_butterworth_and_denoise(
     order: int = 5,
     # ── Spectral-gating denoise parameters ──
     stationary: bool = True,
-    prop_decrease: float = 0.99,
+    prop_decrease: float = 1.00,
     n_fft: int = 2048,
     noise_clip_duration: float = 0.5,
     stats: bool = True,
@@ -356,15 +356,18 @@ def demean_butterworth_and_denoise(
     
 if __name__ == "__main__":
     
-    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
-    patient_processed_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc/'
-    patient_function_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_metadata'
-    
-    for num in range(579, 1067):
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/Files_PR09Stage2_2026-04-18_1541_raw_audio_wav/'
+    patient_processed_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/sub-PR09_stage-2_audio-athome_signal-preproc_spectral_gating_100_percent/'
+    patient_function_output_directory = '/userdata/msharma/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata'
+
+    os.makedirs(patient_processed_data_directory, exist_ok=True)
+    os.makedirs(patient_function_output_directory, exist_ok=True)
+
+    for num in range(1, 122):
         audio_name = str(num) + '_audio.wav'
         audio_name_without_wav = str(num)
         if os.path.exists(patient_raw_data_directory + audio_name):
-            demean_butterworth_and_denoise(patient_raw_data_directory + audio_name, patient_processed_data_directory + 'sub-PR05_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav', patient_function_output_directory)
+            demean_butterworth_and_denoise(patient_raw_data_directory + audio_name, patient_processed_data_directory + 'sub-PR09_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav', patient_function_output_directory)
     
     
 

@@ -381,10 +381,10 @@ def save_summary_errorbar_plot(
 
 
 def main():
-    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc'
-    
-    f3_csv_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_f3_metadata'
-    f3_plot_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_preproc_f3_plots'
+    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/sub-PR09_stage-2_audio-athome_signal-preproc_spectral_gating_100_percent'
+
+    f3_csv_output_directory = '/userdata/msharma/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_f3_metadata'
+    f3_plot_output_directory = '/userdata/msharma/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_f3_plots'
 
     os.makedirs(f3_csv_output_directory, exist_ok=True)
     os.makedirs(f3_plot_output_directory, exist_ok=True)
@@ -398,9 +398,9 @@ def main():
     rel_energy_q3s = []
     rel_energy_iqrs = []
 
-    for num in range(579, 1067):
+    for num in range(1, 122):
         audio_name_without_wav = str(num)
-        audio_name = 'sub-PR05_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav'
+        audio_name = 'sub-PR09_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav'
         sound_path = os.path.join(patient_preproc_data_directory, audio_name)
 
         if not os.path.exists(sound_path):
@@ -415,7 +415,7 @@ def main():
 
         plot_path = os.path.join(
             f3_plot_output_directory,
-            'sub-PR05_stage-2_audio-audiotype_preproc_' + audio_name_without_wav + '_f3.png'
+            'sub-PR09_stage-2_audio-audiotype_preproc_' + audio_name_without_wav + '_f3.png'
         )
         save_f3_plot(ts, relative_energies, mean_rel_energy_f_3, plot_path)
 
@@ -434,7 +434,7 @@ def main():
         ylabel="Mean F3 Relative Energy (dB)",
         title="Mean F3 Relative Energy Across Recordings",
         output_path=os.path.join(f3_plot_output_directory,
-                                 'sub-PR05_stage-2_f3_rel_energy_mean_summary.png'),
+                                 'sub-PR09_stage-2_f3_rel_energy_mean_summary.png'),
     )
 
     save_summary_point_plot(
@@ -442,7 +442,7 @@ def main():
         ylabel="F3 Rel. Energy Std Dev (dB)",
         title="F3 Relative Energy Standard Deviation Across Recordings",
         output_path=os.path.join(f3_plot_output_directory,
-                                 'sub-PR05_stage-2_f3_rel_energy_std_summary.png'),
+                                 'sub-PR09_stage-2_f3_rel_energy_std_summary.png'),
     )
 
     save_summary_point_plot(
@@ -450,7 +450,7 @@ def main():
         ylabel="F3 Rel. Energy IQR (dB)",
         title="F3 Relative Energy Interquartile Range Across Recordings",
         output_path=os.path.join(f3_plot_output_directory,
-                                 'sub-PR05_stage-2_f3_rel_energy_iqr_summary.png'),
+                                 'sub-PR09_stage-2_f3_rel_energy_iqr_summary.png'),
     )
 
     # ── Error-bar plots (glacier-style) ──
@@ -465,7 +465,7 @@ def main():
         ylabel="F3 Relative Energy (dB)",
         title="Mean F3 Relative Energy ± 1 SD Across Recordings",
         output_path=os.path.join(f3_plot_output_directory,
-                                 'sub-PR05_stage-2_f3_rel_energy_mean_sd_errorbar.png'),
+                                 'sub-PR09_stage-2_f3_rel_energy_mean_sd_errorbar.png'),
         bar_label="Mean ± 1 SD",
     )
 
@@ -481,7 +481,7 @@ def main():
         ylabel="F3 Relative Energy (dB)",
         title="Median F3 Relative Energy with IQR Across Recordings",
         output_path=os.path.join(f3_plot_output_directory,
-                                 'sub-PR05_stage-2_f3_rel_energy_median_iqr_errorbar.png'),
+                                 'sub-PR09_stage-2_f3_rel_energy_median_iqr_errorbar.png'),
         bar_label="Median [Q1, Q3]",
     )
 

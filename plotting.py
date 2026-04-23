@@ -8,7 +8,7 @@ sns.set_theme()
 plt.rcParams['figure.dpi'] = 100
 
 
-def save_waveform_plot(audio_path, output_folder="/userdata/msharma/PR05_audio_plots", name="PR05"):
+def save_waveform_plot(audio_path, output_folder="/userdata/msharma/PR09_audio_plots", name="PR09"):
     """
     Saves a waveform plot for audio file.
 
@@ -41,8 +41,8 @@ def save_waveform_plot(audio_path, output_folder="/userdata/msharma/PR05_audio_p
     # print(f"Saved: {output_path}")
     
 def save_spectrogram_plot(audio_path,
-                          output_folder="/userdata/msharma/PR05_audio_plots",
-                          name="PR05"):
+                          output_folder="/userdata/msharma/PR09_audio_plots",
+                          name="PR09"):
     """
     Saves a spectrogram plot for an audio file.
 
@@ -88,8 +88,8 @@ def save_spectrogram_plot(audio_path,
 
 
 def save_spectrum_plot(audio_path,
-                       output_folder="/userdata/msharma/PR05_audio_plots",
-                       name="PR05",
+                       output_folder="/userdata/msharma/PR09_audio_plots",
+                       name="PR09",
                        freq_max=5000.0,
                        snippet_duration=0.1,
                        pitch_floor=115.0):
@@ -168,13 +168,13 @@ def save_spectrum_plot(audio_path,
 
 def main():
 
-    # patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
-    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc/'
-    plot_output_directory = '/userdata/msharma/sub-PR05_stage-2_audio-audiotype_raw_audio_plots'
+    # patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/'
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/sub-PR09_stage-2_audio-athome_signal-preproc_spectral_gating_100_percent/'
+    plot_output_directory = '/userdata/msharma/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR09_stage-2_audio-audiotype_raw_audio_plots'
     
-    for num in range(579, 1067):
+    for num in range(1, 122):
         # audio_name = str(num) + '_audio.wav'
-        audio_name = 'sub-PR05_stage-2_audio-athome_signal-preproc_' + str(num) + '.wav'
+        audio_name = 'sub-PR09_stage-2_audio-athome_signal-preproc_' + str(num) + '.wav'
         audio_path = os.path.join(patient_raw_data_directory, audio_name)
         if os.path.exists(audio_path):
             save_waveform_plot(audio_path, plot_output_directory)
