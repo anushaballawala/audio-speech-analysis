@@ -29,7 +29,7 @@ INDEX_HTML = Path(
 RUN_PARENT = BASE / "sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
 OUT_DIR = RUN_PARENT / "sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_hamd_correlation"
 
-SCORE_COLS = ["hamd_total", "vas_anxiety", "vas_depression", "vas_energy", "vas_lowenergy"]
+SCORE_COLS = ["hamd_total", "vas_anxiety", "vas_depression", "vas_lowenergy"]
 
 FEATURE_DIRS = {
     "pitch": (

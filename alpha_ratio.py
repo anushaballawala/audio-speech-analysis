@@ -338,10 +338,10 @@ def save_summary_errorbar_plot(
 
 
 def main():
-    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/sub-PR09_stage-2_audio-athome_signal-preproc_spectral_gating_100_percent'
+    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc_wiener_filtering'
 
-    alpha_ratio_csv_output_directory = '/userdata/msharma/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_alpha_ratio_metadata'
-    alpha_ratio_plot_output_directory = '/userdata/msharma/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_alpha_ratio_plots'
+    alpha_ratio_csv_output_directory = '/userdata/msharma/sub-PR05-stage-2_audio-audiotype_preproc_wiener_filtering_metadata_and_plots/sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_alpha_ratio_metadata'
+    alpha_ratio_plot_output_directory = '/userdata/msharma/sub-PR05-stage-2_audio-audiotype_preproc_wiener_filtering_metadata_and_plots/sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_alpha_ratio_plots'
 
     os.makedirs(alpha_ratio_csv_output_directory, exist_ok=True)
     os.makedirs(alpha_ratio_plot_output_directory, exist_ok=True)
@@ -355,9 +355,9 @@ def main():
     alpha_ratio_q3s = []
     alpha_ratio_iqrs = []
 
-    for num in range(1, 122):
+    for num in range(579, 1067):
         audio_name_without_wav = str(num)
-        audio_name = 'sub-PR09_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav'
+        audio_name = 'sub-PR05_stage-2_audio-athome_signal-preproc_wiener_' + audio_name_without_wav + '.wav'
         sound_path = os.path.join(patient_preproc_data_directory, audio_name)
 
         if not os.path.exists(sound_path):
@@ -371,7 +371,7 @@ def main():
 
         plot_path = os.path.join(
             alpha_ratio_plot_output_directory,
-            'sub-PR09_stage-2_audio-audiotype_preproc_' + audio_name_without_wav + '_alpha_ratio.png'
+            'sub-PR05_stage-2_audio-audiotype_preproc_wiener_' + audio_name_without_wav + '_alpha_ratio.png'
         )
         save_alpha_ratio_plot(ts, ratios, alpha_ratio_mean, plot_path)
 
@@ -390,7 +390,7 @@ def main():
         ylabel="Mean Alpha Ratio",
         title="Mean Alpha Ratio Across Recordings",
         output_path=os.path.join(alpha_ratio_plot_output_directory,
-                                 'sub-PR09_stage-2_alpha_ratio_mean_summary.png'),
+                                 'sub-PR05_stage-2_wiener_alpha_ratio_mean_summary.png'),
     )
 
     save_summary_point_plot(
@@ -398,7 +398,7 @@ def main():
         ylabel="Alpha Ratio Std Dev",
         title="Alpha Ratio Standard Deviation Across Recordings",
         output_path=os.path.join(alpha_ratio_plot_output_directory,
-                                 'sub-PR09_stage-2_alpha_ratio_std_summary.png'),
+                                 'sub-PR05_stage-2_wiener_alpha_ratio_std_summary.png'),
     )
 
     save_summary_point_plot(
@@ -406,7 +406,7 @@ def main():
         ylabel="Alpha Ratio IQR",
         title="Alpha Ratio Interquartile Range Across Recordings",
         output_path=os.path.join(alpha_ratio_plot_output_directory,
-                                 'sub-PR09_stage-2_alpha_ratio_iqr_summary.png'),
+                                 'sub-PR05_stage-2_wiener_alpha_ratio_iqr_summary.png'),
     )
 
     # ── Error-bar plots (glacier-style) ──
@@ -421,7 +421,7 @@ def main():
         ylabel="Alpha Ratio",
         title="Mean Alpha Ratio ± 1 SD Across Recordings",
         output_path=os.path.join(alpha_ratio_plot_output_directory,
-                                 'sub-PR09_stage-2_alpha_ratio_mean_sd_errorbar.png'),
+                                 'sub-PR05_stage-2_wiener_alpha_ratio_mean_sd_errorbar.png'),
         bar_label="Mean ± 1 SD",
     )
 
@@ -437,7 +437,7 @@ def main():
         ylabel="Alpha Ratio",
         title="Median Alpha Ratio with IQR Across Recordings",
         output_path=os.path.join(alpha_ratio_plot_output_directory,
-                                 'sub-PR09_stage-2_alpha_ratio_median_iqr_errorbar.png'),
+                                 'sub-PR05_stage-2_wiener_alpha_ratio_median_iqr_errorbar.png'),
         bar_label="Median [Q1, Q3]",
     )
 

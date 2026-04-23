@@ -1,11 +1,13 @@
-"""HAM-D / VAS correlation + scatter plots vs voice features for PR08.
+"""Correlation + scatter plots of HAM-D / anxiety / MADRS scores vs voice features
+for PR05 Wiener-filtered preprocessing.
 
-Audio files are numbered 1-69 (N_audio.m4a) and correspond directly to record_id in
-PR08PreStage2_DATA_2026-04-18_1616.csv (one row per record, both audio_task timestamp
-and completion_pt scores in the same row).
+Same design as the spectral-gating correlation script, but:
+  • Reads feature metadata from the PR05 Wiener-filtering subfolders.
+  • Adds jitter and shimmer alongside the original four feature families.
+  • Writes outputs into the PR05 Wiener hamd_correlation subfolder.
 
 Usage:
-    python hamd_feature_correlation_PR08.py
+    python hamd_feature_correlation_PR05_wiener.py
 """
 
 import re
@@ -17,36 +19,49 @@ import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
 BASE = Path("/userdata/msharma")
-SCORES_CSV = BASE / "PR08PreStage2_DATA_2026-04-18_1616.csv"
-RUN_PARENT = BASE / "sub-PR08-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
-OUT_DIR = RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_hamd_correlation"
+XLSX = BASE / "PR05 List of Video Filenames.xlsx"
+SHEET = "Stage 2 AudioScore Match"
+RUN_PARENT = BASE / "sub-PR05-stage-2_audio-audiotype_preproc_wiener_filtering_metadata_and_plots"
+OUT_DIR = RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_hamd_correlation"
 
-SCORE_COLS = ["hamd_total", "vas_anxiety", "vas_depression", "vas_lowenergy"]
+SCORE_COLS = ["hamd_total", "vas_anxiety", "vas_depression", "madrs_total", "madrs_score"]
 
 FEATURE_DIRS = {
     "pitch": (
-        RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_pitch_metadata",
+        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_pitch_metadata",
         "_pitches.csv",
         ["pitch_mean", "pitch_std", "pitch_median", "pitch_iqr"],
     ),
     "loudness": (
-        RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_loudness_metadata",
+        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_loudness_metadata",
         "_loudness_in_db.csv",
         ["active_intensity_vals_mean", "intensity_std", "intensity_median", "intensity_iqr"],
     ),
     "f3": (
-        RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_f3_metadata",
+        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_f3_metadata",
         "_relative_energy_formant.csv",
         ["mean_rel_energy_f_i", "rel_energy_std", "rel_energy_median", "rel_energy_iqr"],
     ),
     "alpha_ratio": (
-        RUN_PARENT / "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_alpha_ratio_metadata",
+        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_alpha_ratio_metadata",
         "_alpha_ratio.csv",
         ["alpha_ratio_mean", "alpha_ratio_std", "alpha_ratio_median", "alpha_ratio_iqr"],
     ),
+    "jitter": (
+        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_jitter_metadata",
+        "_jitter.csv",
+        ["jitter_val"],
+    ),
+    "shimmer": (
+        RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_shimmer_metadata",
+        "_shimmer_apqN.csv",
+        ["shimmer_val"],
+    ),
 }
 
-SUBJECT_RE = re.compile(r"signal-preproc_(\d+)_")
+# Matches filenames like  sub-PR05_stage-2_audio-athome_signal-preproc_wiener_<id>_<metric>.csv
+# and also the unprefixed form used by spectral_gating metadata.
+SUBJECT_RE = re.compile(r"signal-preproc_(?:wiener_)?(\d+)_")
 
 
 def extract_id(path: Path) -> str | None:
@@ -74,11 +89,14 @@ def build_feature_table() -> pd.DataFrame:
     return merged
 
 
-def load_scores_by_audio_id() -> pd.DataFrame:
-    df = pd.read_csv(SCORES_CSV)
-    df["audio_id"] = df["record_id"].astype(str)
+def load_scores() -> pd.DataFrame:
+    df = pd.read_excel(XLSX, sheet_name=SHEET)
+    df = df[df["Filename"].notna()].copy()
+    df["audio_id"] = df["Filename"].astype(str).str.extract(r"^(\d+)")[0]
     keep = ["audio_id"] + [c for c in SCORE_COLS if c in df.columns]
-    return df[keep]
+    df = df[keep].dropna(subset=["audio_id"])
+    df = df.groupby("audio_id", as_index=False).first()
+    return df
 
 
 def correlate(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str]) -> pd.DataFrame:
@@ -154,11 +172,11 @@ def main():
     features = build_feature_table()
     features["audio_id"] = features["audio_id"].astype(str)
 
-    scores = load_scores_by_audio_id()
+    scores = load_scores()
     score_cols = [c for c in SCORE_COLS if c in scores.columns]
 
-    df = features.merge(scores, on="audio_id", how="inner")
-    print(f"Matched {len(df)} audio files (features={len(features)}, scores={len(scores)})")
+    df = scores.merge(features, on="audio_id", how="inner")
+    print(f"Matched {len(df)} subjects (features={len(features)}, scores={len(scores)})")
     df.to_csv(OUT_DIR / "merged_scores_features.csv", index=False)
 
     feature_cols = [c for c in features.columns if c != "audio_id"]
@@ -166,7 +184,7 @@ def main():
     corr = correlate(df, score_cols, feature_cols)
     corr.to_csv(OUT_DIR / "correlations.csv", index=False)
     print("\nTop correlations by |pearson_r|:")
-    print(corr.reindex(corr["pearson_r"].abs().sort_values(ascending=False).index).head(15).to_string(index=False))
+    print(corr.reindex(corr["pearson_r"].abs().sort_values(ascending=False).index).head(20).to_string(index=False))
 
     plot_heatmap(df, score_cols, feature_cols, OUT_DIR / "correlation_heatmap.png")
     for s in score_cols:

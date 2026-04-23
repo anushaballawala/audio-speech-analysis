@@ -303,10 +303,10 @@ def save_summary_errorbar_plot(
 
 
 def main():
-    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/sub-PR09_stage-2_audio-athome_signal-preproc_spectral_gating_100_percent'
+    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc_wiener_filtering'
 
-    loudness_csv_output_directory = '/userdata/msharma/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_loudness_metadata'
-    loudness_plot_output_directory = '/userdata/msharma/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_loudness_plots'
+    loudness_csv_output_directory = '/userdata/msharma/sub-PR05-stage-2_audio-audiotype_preproc_wiener_filtering_metadata_and_plots/sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_loudness_metadata'
+    loudness_plot_output_directory = '/userdata/msharma/sub-PR05-stage-2_audio-audiotype_preproc_wiener_filtering_metadata_and_plots/sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_loudness_plots'
 
     os.makedirs(loudness_csv_output_directory, exist_ok=True)
     os.makedirs(loudness_plot_output_directory, exist_ok=True)
@@ -320,9 +320,9 @@ def main():
     intensity_q3s = []
     intensity_iqrs = []
 
-    for num in range(1, 122):
+    for num in range(579, 1067):
         audio_name_without_wav = str(num)
-        audio_name = 'sub-PR09_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav'
+        audio_name = 'sub-PR05_stage-2_audio-athome_signal-preproc_wiener_' + audio_name_without_wav + '.wav'
         sound_path = os.path.join(patient_preproc_data_directory, audio_name)
 
         if not os.path.exists(sound_path):
@@ -336,7 +336,7 @@ def main():
 
         plot_path = os.path.join(
             loudness_plot_output_directory,
-            'sub-PR09_stage-2_audio-audiotype_preproc_' + audio_name_without_wav + '_loudness.png'
+            'sub-PR05_stage-2_audio-audiotype_preproc_wiener_' + audio_name_without_wav + '_loudness.png'
         )
         save_loudness_plot(ts, intensity_db, mean_intensity_db, plot_path)
 
@@ -355,7 +355,7 @@ def main():
         ylabel="Mean Intensity (dB)",
         title="Mean Intensity (dB) Across Recordings",
         output_path=os.path.join(loudness_plot_output_directory,
-                                 'sub-PR09_stage-2_loudness_mean_summary.png'),
+                                 'sub-PR05_stage-2_wiener_loudness_mean_summary.png'),
     )
 
     save_summary_point_plot(
@@ -363,7 +363,7 @@ def main():
         ylabel="Intensity Std Dev (dB)",
         title="Intensity Standard Deviation Across Recordings",
         output_path=os.path.join(loudness_plot_output_directory,
-                                 'sub-PR09_stage-2_loudness_std_summary.png'),
+                                 'sub-PR05_stage-2_wiener_loudness_std_summary.png'),
     )
 
     save_summary_point_plot(
@@ -371,7 +371,7 @@ def main():
         ylabel="Intensity IQR (dB)",
         title="Intensity Interquartile Range Across Recordings",
         output_path=os.path.join(loudness_plot_output_directory,
-                                 'sub-PR09_stage-2_loudness_iqr_summary.png'),
+                                 'sub-PR05_stage-2_wiener_loudness_iqr_summary.png'),
     )
 
     # ── Error-bar plots (glacier-style) ──
@@ -386,7 +386,7 @@ def main():
         ylabel="Intensity (dB)",
         title="Mean Intensity ± 1 SD Across Recordings",
         output_path=os.path.join(loudness_plot_output_directory,
-                                 'sub-PR09_stage-2_loudness_mean_sd_errorbar.png'),
+                                 'sub-PR05_stage-2_wiener_loudness_mean_sd_errorbar.png'),
         bar_label="Mean ± 1 SD",
     )
 
@@ -402,7 +402,7 @@ def main():
         ylabel="Intensity (dB)",
         title="Median Intensity with IQR Across Recordings",
         output_path=os.path.join(loudness_plot_output_directory,
-                                 'sub-PR09_stage-2_loudness_median_iqr_errorbar.png'),
+                                 'sub-PR05_stage-2_wiener_loudness_median_iqr_errorbar.png'),
         bar_label="Median [Q1, Q3]",
     )
 
