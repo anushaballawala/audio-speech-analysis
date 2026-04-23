@@ -15,8 +15,8 @@ def jitter(
     sound_path: str,
     csv_folder_name: str,
     kind : str = "local",
-    pitch_floor: float = 75.0, #currently set to 75Hz, seems to work well
-    pitch_ceiling: float = 500.0,
+    pitch_floor: float = 115.0, #currently set to 75Hz, seems to work well
+    pitch_ceiling: float = 400.0,
     pitch_time_step = 0.01,
     from_time: float = 0.0, # if from time and to time are same it goes for the entire audio recording
     to_time: float = 0.0,
