@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import os
+import glob
 
 sns.set_theme()
 plt.rcParams['figure.dpi'] = 100
@@ -169,17 +170,13 @@ def save_spectrum_plot(audio_path,
 def main():
 
     # patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage3/PR05/'
-    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage3/PR05/sub-PR05_stage-3_audio_signal-preproc_spectral_gating_100_percent/'
-    plot_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_audio_plots'
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/ClinicianScales/PR05/PR05_clinician_scales_audio_preproc_spectral_gating_100_percent/'
+    plot_output_directory = '/userdata/msharma/sub-PR05-clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_audio_plots'
     
-    for num in range(1, 476):
-        # audio_name = str(num) + '_audio.wav'
-        audio_name = 'sub-PR05_stage-3_audio_signal-preproc_' + str(num) + '.wav'
-        audio_path = os.path.join(patient_raw_data_directory, audio_name)
-        if os.path.exists(audio_path):
-            save_waveform_plot(audio_path, plot_output_directory)
-            save_spectrogram_plot(audio_path, plot_output_directory)
-            save_spectrum_plot(audio_path, plot_output_directory)
+    for audio_path in sorted(glob.glob(os.path.join(patient_raw_data_directory, '*.wav'))):
+        save_waveform_plot(audio_path, plot_output_directory)
+        save_spectrogram_plot(audio_path, plot_output_directory)
+        save_spectrum_plot(audio_path, plot_output_directory)
 
 if __name__ == "__main__":
     main()

@@ -1,56 +1,60 @@
+# apqN shimmer is N-point period amplitude perturbation quotient (apq5 is supposed to be most effective)
+
 import numpy as np
 import parselmouth
 from parselmouth.praat import call
 import matplotlib.pyplot as plt
 import time
 import os
+import glob
 import csv
 
 
-def jitter(
+def shimmer_apqN(
     sound_path: str,
     csv_folder_name: str,
-    kind: str = "local",
-    pitch_floor: float = 115.0,
-    pitch_ceiling: float = 400.0,
+    N: int,  # N can only be 3, 5, or 11
+    *,
+    pitch_floor: float = 75.0,
+    pitch_ceiling: float = 500.0,
     pitch_time_step=0.01,
     from_time: float = 0.0,  # if from_time and to_time are same it goes for the entire audio recording
     to_time: float = 0.0,
-    period_floor: float = 0.0001,  # this and below are default praat vals
+    period_floor: float = 0.0001,  # all of these are default praat values
     period_ceiling: float = 0.02,
     maximum_period_factor: float = 1.3,
+    maximum_amplitude_factor: float = 1.6,
     stats: bool = True,
 ):
     """
-    Returns jitter of sound.
-
-    kind options: "local", "local, absolute", "rap", "ppq5", "ddp"
+    Compute N-point Amplitude Perturbation Quotient (apqN shimmer).
     """
-
-    if stats:
-        start_time = time.perf_counter()
-        wav_base = os.path.splitext(os.path.basename(sound_path))[0]
-        func_name = jitter.__name__
-        stats_csv_file_name = f"{csv_folder_name}/{wav_base}_{func_name}.csv"
 
     sound = parselmouth.Sound(sound_path)
     sampling_hz = sound.sampling_frequency
 
-    if kind not in ["local", "local, absolute", "rap", "ppq5", "ddp"]:
-        raise ValueError("Kind option not one of those allowed. Look at docstring for kind options.")
+    if stats:
+        start_time = time.perf_counter()
+        wav_base = os.path.splitext(os.path.basename(sound_path))[0]
+        func_name = shimmer_apqN.__name__
+        stats_csv_file_name = f"{csv_folder_name}/{wav_base}_{func_name}.csv"
+
+    if N not in [3, 5, 11]:
+        raise ValueError("N can only be 3, 5, or 11")
 
     pitch = sound.to_pitch(time_step=pitch_time_step, pitch_floor=pitch_floor, pitch_ceiling=pitch_ceiling)
 
     point = call([sound, pitch], "To PointProcess (cc)")
 
-    jtr = call(
-        point,
-        f"Get jitter ({kind})",
+    apqN = call(
+        [sound, point],
+        f"Get shimmer (apq{N})",
         from_time,
         to_time,
         period_floor,
         period_ceiling,
         maximum_period_factor,
+        maximum_amplitude_factor,
     )
 
     if stats:
@@ -60,7 +64,7 @@ def jitter(
             writer.writerow([
                 "sound_path",
                 "sample_rate_hz",
-                "kind",
+                "N",
                 "pitch_floor",
                 "pitch_ceiling",
                 "pitch_time_step",
@@ -69,13 +73,14 @@ def jitter(
                 "period_floor",
                 "period_ceiling",
                 "maximum_period_factor",
-                "jitter_val",
+                "maximum_amplitude_factor",
+                "shimmer_val",
                 "elapsed_seconds",
             ])
             writer.writerow([
                 os.path.basename(sound_path),
                 sampling_hz,
-                kind,
+                N,
                 pitch_floor,
                 pitch_ceiling,
                 pitch_time_step,
@@ -84,11 +89,12 @@ def jitter(
                 period_floor,
                 period_ceiling,
                 maximum_period_factor,
-                jtr,
+                maximum_amplitude_factor,
+                apqN,
                 f"{elapsed_sec:.6f}",
             ])
 
-    return jtr, sampling_hz
+    return apqN, sampling_hz
 
 
 def save_summary_point_plot(
@@ -98,7 +104,7 @@ def save_summary_point_plot(
     title: str,
     output_path: str,
 ):
-    """Scatter of one jitter value per recording, with grand-mean reference line."""
+    """Scatter of one shimmer value per recording, with grand-mean reference line."""
     if len(values) == 0:
         return
 
@@ -143,35 +149,30 @@ def save_summary_point_plot(
 
 
 def main():
-    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage3/PR05/sub-PR05_stage-3_audio_signal-preproc_spectral_gating_100_percent'
+    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/ClinicianScales/PR05/PR05_clinician_scales_audio_preproc_spectral_gating_100_percent'
 
-    jitter_csv_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_jitter_metadata'
-    jitter_plot_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_jitter_plots'
+    shimmer_csv_output_directory = '/userdata/msharma/sub-PR05-clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_shimmer_metadata'
+    shimmer_plot_output_directory = '/userdata/msharma/sub-PR05-clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_shimmer_plots'
 
-    os.makedirs(jitter_csv_output_directory, exist_ok=True)
-    os.makedirs(jitter_plot_output_directory, exist_ok=True)
+    os.makedirs(shimmer_csv_output_directory, exist_ok=True)
+    os.makedirs(shimmer_plot_output_directory, exist_ok=True)
 
     recording_labels = []
-    jitter_vals = []
+    shimmer_vals = []
 
-    for num in range(1, 476):
-        audio_name_without_wav = str(num)
-        audio_name = 'sub-PR05_stage-3_audio_signal-preproc_' + audio_name_without_wav + '.wav'
-        sound_path = os.path.join(patient_preproc_data_directory, audio_name)
+    for sound_path in sorted(glob.glob(os.path.join(patient_preproc_data_directory, '*.wav'))):
+        audio_name_without_wav = os.path.splitext(os.path.basename(sound_path))[0]
 
-        if not os.path.exists(sound_path):
-            continue
-
-        jtr_val, _ = jitter(sound_path, jitter_csv_output_directory)
+        apq5_val, _ = shimmer_apqN(sound_path, shimmer_csv_output_directory, 5)
         recording_labels.append(audio_name_without_wav)
-        jitter_vals.append(jtr_val)
+        shimmer_vals.append(apq5_val)
 
     save_summary_point_plot(
-        recording_labels, jitter_vals,
-        ylabel="Jitter (local)",
-        title="Jitter Across Recordings",
-        output_path=os.path.join(jitter_plot_output_directory,
-                                 'sub-PR05_stage-3_jitter_summary.png'),
+        recording_labels, shimmer_vals,
+        ylabel="Shimmer (apq5)",
+        title="Shimmer (apq5) Across Recordings",
+        output_path=os.path.join(shimmer_plot_output_directory,
+                                 'sub-PR05_clinician_scales_shimmer_apq5_summary.png'),
     )
 
 

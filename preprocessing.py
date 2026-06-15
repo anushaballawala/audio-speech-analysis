@@ -559,20 +559,20 @@ def demean_butterworth_and_wiener_denoise(
 
 if __name__ == "__main__":
 
-    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/'
-    patient_processed_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc_wiener_filtering/'
-    patient_function_output_directory = '/userdata/msharma/sub-PR05-stage-2_audio-audiotype_preproc_wiener_filtering_metadata_and_plots/sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_metadata'
+    patient_raw_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage3/PR05/PR05_stage3_FilesReport_AllDataAllRecordsAnd_2026-06-07_1943_raw_audio_wav/'
+    patient_processed_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage3/PR05/sub-PR05_stage-3_audio_signal-preproc_spectral_gating_100_percent/'
+    patient_function_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata'
 
     os.makedirs(patient_processed_data_directory, exist_ok=True)
     os.makedirs(patient_function_output_directory, exist_ok=True)
 
-    for num in range(579, 1067):
+    for num in range(1, 476):
         audio_name = str(num) + '_audio.wav'
         audio_name_without_wav = str(num)
         if os.path.exists(patient_raw_data_directory + audio_name):
-            demean_butterworth_and_wiener_denoise(
+            demean_butterworth_and_denoise(
                 patient_raw_data_directory + audio_name,
-                patient_processed_data_directory + 'sub-PR05_stage-2_audio-athome_signal-preproc_' + audio_name_without_wav + '.wav',
+                patient_processed_data_directory + 'sub-PR05_stage-3_audio_signal-preproc_' + audio_name_without_wav + '.wav',
                 patient_function_output_directory,
             )
     

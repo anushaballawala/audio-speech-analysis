@@ -4,6 +4,7 @@ from numpy.linalg import lstsq
 import matplotlib.pyplot as plt
 import time
 import os
+import glob
 import csv
 
 # snd = "raw_audio/hoarse_test_voice.wav" # pitch mean: 287.3200488390224 (couldn't reliably find pitch though)
@@ -328,11 +329,11 @@ def save_summary_errorbar_plot(
 
 def main():
     # Input directory and naming convention must match the provided patient script
-    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage3/PR05/sub-PR05_stage-3_audio_signal-preproc_spectral_gating_100_percent'
+    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/ClinicianScales/PR05/PR05_clinician_scales_audio_preproc_spectral_gating_100_percent'
 
     # Output directories (as requested)
-    pitch_csv_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_pitch_metadata'
-    pitch_plot_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_pitch_plots'
+    pitch_csv_output_directory = '/userdata/msharma/sub-PR05-clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_pitch_metadata'
+    pitch_plot_output_directory = '/userdata/msharma/sub-PR05-clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_pitch_plots'
 
     os.makedirs(pitch_csv_output_directory, exist_ok=True)
     os.makedirs(pitch_plot_output_directory, exist_ok=True)
@@ -349,13 +350,8 @@ def main():
     f0_intercepts = []
     lstsq_residual_stds = []
 
-    for num in range(1, 476):
-        audio_name_without_wav = str(num)
-        audio_name = 'sub-PR05_stage-3_audio_signal-preproc_' + audio_name_without_wav + '.wav'
-        sound_path = os.path.join(patient_preproc_data_directory, audio_name)
-        
-        if not os.path.exists(sound_path):
-            continue
+    for sound_path in sorted(glob.glob(os.path.join(patient_preproc_data_directory, '*.wav'))):
+        audio_name_without_wav = os.path.splitext(os.path.basename(sound_path))[0]
 
         (nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept,
          pitch_mean, s_hz,
@@ -367,7 +363,7 @@ def main():
 
         plot_path = os.path.join(
             pitch_plot_output_directory,
-            'sub-PR05_stage-3_audio-audiotype_preproc_' + audio_name_without_wav + '_pitch.png'
+            'sub-PR05_clinician_scales_audio-audiotype_preproc_' + audio_name_without_wav + '_pitch.png'
         )
         save_pitch_plot(nonzero_xs, nonzero_f0_values, f0_lstsq_slope, f0_lstsq_intercept, plot_path)
 
@@ -389,7 +385,7 @@ def main():
         ylabel="Mean Pitch (Hz)",
         title="Mean Pitch Across Recordings",
         output_path=os.path.join(pitch_plot_output_directory,
-                                 'sub-PR05_stage-3_pitch_mean_summary.png'),
+                                 'sub-PR05_clinician_scales_pitch_mean_summary.png'),
     )
 
     save_summary_point_plot(
@@ -397,7 +393,7 @@ def main():
         ylabel="F0 Least-Squares Slope",
         title="F0 Least-Squares Slope Across Recordings",
         output_path=os.path.join(pitch_plot_output_directory,
-                                 'sub-PR05_stage-3_f0_lstsq_slope_summary.png'),
+                                 'sub-PR05_clinician_scales_f0_lstsq_slope_summary.png'),
     )
 
     save_summary_point_plot(
@@ -405,7 +401,7 @@ def main():
         ylabel="F0 Least-Squares Intercept (Hz)",
         title="F0 Least-Squares Intercept Across Recordings",
         output_path=os.path.join(pitch_plot_output_directory,
-                                 'sub-PR05_stage-3_f0_lstsq_intercept_summary.png'),
+                                 'sub-PR05_clinician_scales_f0_lstsq_intercept_summary.png'),
     )
 
     # ── New: point plot for std dev itself ──
@@ -414,7 +410,7 @@ def main():
         ylabel="Pitch Std Dev (Hz)",
         title="Pitch Standard Deviation Across Recordings",
         output_path=os.path.join(pitch_plot_output_directory,
-                                 'sub-PR05_stage-3_pitch_std_summary.png'),
+                                 'sub-PR05_clinician_scales_pitch_std_summary.png'),
     )
 
     save_summary_point_plot(
@@ -422,7 +418,7 @@ def main():
         ylabel="Pitch IQR (Hz)",
         title="Pitch Interquartile Range Across Recordings",
         output_path=os.path.join(pitch_plot_output_directory,
-                                 'sub-PR05_stage-3_pitch_iqr_summary.png'),
+                                 'sub-PR05_clinician_scales_pitch_iqr_summary.png'),
     )
 
     # ── New: error-bar plots (glacier-style) ──
@@ -438,7 +434,7 @@ def main():
         ylabel="Pitch (Hz)",
         title="Mean Pitch ± 1 SD Across Recordings",
         output_path=os.path.join(pitch_plot_output_directory,
-                                 'sub-PR05_stage-3_pitch_mean_sd_errorbar.png'),
+                                 'sub-PR05_clinician_scales_pitch_mean_sd_errorbar.png'),
         bar_label="Mean ± 1 SD",
     )
 
@@ -454,7 +450,7 @@ def main():
         ylabel="Pitch (Hz)",
         title="Median Pitch with IQR Across Recordings",
         output_path=os.path.join(pitch_plot_output_directory,
-                                 'sub-PR05_stage-3_pitch_median_iqr_errorbar.png'),
+                                 'sub-PR05_clinician_scales_pitch_median_iqr_errorbar.png'),
         bar_label="Median [Q1, Q3]",
     )
 
@@ -467,7 +463,7 @@ def main():
         ylabel="F0 Slope (Hz/s)",
         title="F0 Slope ± Residual Std Across Recordings",
         output_path=os.path.join(pitch_plot_output_directory,
-                                 'sub-PR05_stage-3_f0_slope_residual_errorbar.png'),
+                                 'sub-PR05_clinician_scales_f0_slope_residual_errorbar.png'),
         bar_label="Slope ± residual SD",
     )
 

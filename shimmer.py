@@ -148,10 +148,10 @@ def save_summary_point_plot(
 
 
 def main():
-    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/PR05/home/sub-PR05_stage-2_audio-athome_signal-preproc_wiener_filtering'
+    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage3/PR05/sub-PR05_stage-3_audio_signal-preproc_spectral_gating_100_percent'
 
-    shimmer_csv_output_directory = '/userdata/msharma/sub-PR05-stage-2_audio-audiotype_preproc_wiener_filtering_metadata_and_plots/sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_shimmer_metadata'
-    shimmer_plot_output_directory = '/userdata/msharma/sub-PR05-stage-2_audio-audiotype_preproc_wiener_filtering_metadata_and_plots/sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_shimmer_plots'
+    shimmer_csv_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_shimmer_metadata'
+    shimmer_plot_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_shimmer_plots'
 
     os.makedirs(shimmer_csv_output_directory, exist_ok=True)
     os.makedirs(shimmer_plot_output_directory, exist_ok=True)
@@ -159,9 +159,9 @@ def main():
     recording_labels = []
     shimmer_vals = []
 
-    for num in range(579, 1067):
+    for num in range(1, 476):
         audio_name_without_wav = str(num)
-        audio_name = 'sub-PR05_stage-2_audio-athome_signal-preproc_wiener_' + audio_name_without_wav + '.wav'
+        audio_name = 'sub-PR05_stage-3_audio_signal-preproc_' + audio_name_without_wav + '.wav'
         sound_path = os.path.join(patient_preproc_data_directory, audio_name)
 
         if not os.path.exists(sound_path):
@@ -176,7 +176,7 @@ def main():
         ylabel="Shimmer (apq5)",
         title="Shimmer (apq5) Across Recordings",
         output_path=os.path.join(shimmer_plot_output_directory,
-                                 'sub-PR05_stage-2_wiener_shimmer_apq5_summary.png'),
+                                 'sub-PR05_stage-3_shimmer_apq5_summary.png'),
     )
 
 

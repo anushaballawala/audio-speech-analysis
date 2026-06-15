@@ -4,6 +4,7 @@ from parselmouth.praat import call
 import matplotlib.pyplot as plt
 import time
 import os
+import glob
 import csv
 
 
@@ -143,10 +144,10 @@ def save_summary_point_plot(
 
 
 def main():
-    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage3/PR05/sub-PR05_stage-3_audio_signal-preproc_spectral_gating_100_percent'
+    patient_preproc_data_directory = '/data_store2/resection/neuropsych_video/presidio/Stage2/ClinicianScales/PR05/PR05_clinician_scales_audio_preproc_spectral_gating_100_percent'
 
-    jitter_csv_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_jitter_metadata'
-    jitter_plot_output_directory = '/userdata/msharma/sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_jitter_plots'
+    jitter_csv_output_directory = '/userdata/msharma/sub-PR05-clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_jitter_metadata'
+    jitter_plot_output_directory = '/userdata/msharma/sub-PR05-clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots/sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_jitter_plots'
 
     os.makedirs(jitter_csv_output_directory, exist_ok=True)
     os.makedirs(jitter_plot_output_directory, exist_ok=True)
@@ -154,13 +155,8 @@ def main():
     recording_labels = []
     jitter_vals = []
 
-    for num in range(1, 476):
-        audio_name_without_wav = str(num)
-        audio_name = 'sub-PR05_stage-3_audio_signal-preproc_' + audio_name_without_wav + '.wav'
-        sound_path = os.path.join(patient_preproc_data_directory, audio_name)
-
-        if not os.path.exists(sound_path):
-            continue
+    for sound_path in sorted(glob.glob(os.path.join(patient_preproc_data_directory, '*.wav'))):
+        audio_name_without_wav = os.path.splitext(os.path.basename(sound_path))[0]
 
         jtr_val, _ = jitter(sound_path, jitter_csv_output_directory)
         recording_labels.append(audio_name_without_wav)
@@ -171,7 +167,7 @@ def main():
         ylabel="Jitter (local)",
         title="Jitter Across Recordings",
         output_path=os.path.join(jitter_plot_output_directory,
-                                 'sub-PR05_stage-3_jitter_summary.png'),
+                                 'sub-PR05_clinician_scales_jitter_summary.png'),
     )
 
 
