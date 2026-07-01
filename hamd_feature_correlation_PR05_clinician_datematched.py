@@ -1,21 +1,9 @@
-"""Correlation + scatter plots of HAM-D / anxiety / MADRS scores vs voice features
-for PR05 Stage 3, 100% spectral-gating preprocessing.
-
-Same design as the PR05 Stage 2 spectral-gating correlation script, but:
-  • Reads feature metadata from the PR05 Stage 3 spectral_gating_100_percent subfolders.
-  • Scores come from PR05Stage3_DATA_2026-06-07_1941.csv. REDCap names each audio
-    file <record_id>_audio.m4a, so the feature audio_id (the <num> parsed from the
-    preprocessed wav name) joins DIRECTLY to the CSV record_id. This is confirmed by
-    index.html, where record N's Original_Filename equals the CSV `audio` value.
-  • Four feature families (pitch / loudness / f3 / alpha_ratio); no jitter/shimmer
-    (those exist only in the separate wiener variant).
-
-Usage:
-    python hamd_feature_correlation_PR05_stage3.py
-"""
-
 import re
+import os
+import glob
+import json
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,21 +11,29 @@ import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
 BASE = Path("/userdata/msharma")
-SCORES_CSV = BASE / "PR05Stage3_DATA_2026-06-07_1941.csv"
-RUN_PARENT = BASE / "sub-PR05-stage-3_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
-OUT_DIR = RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_hamd_correlation"
+# Two at-home self-report survey exports (2026-06-29) that together span the
+# clinician-recording date range. Scores are matched to each clinician recording
+# by NEAREST timestamp (see load_scores), not by a filename key.
+STAGE2_CSV = BASE / "PR05Stage2_DATA_2026-06-29_1836.csv"
+STAGE3_CSV = BASE / "PR05Stage3_DATA_LABELS_2026-06-29_1844.csv"
+HAMD_MAP = BASE / "hamd_label_map.json"      # Stage-3 HAMD item label -> 0..4 (verified lossless)
+PREPROC_DIR = "/data_store2/resection/neuropsych_video/presidio/Stage2/ClinicianScales/PR05/PR05_clinician_scales_audio_preproc_spectral_gating_100_percent"
+MATCH_TOLERANCE_H = 48.0                      # drop recordings whose nearest survey is > this many hours away
 
-# Score set: HAM-D total + its six individual clinician items, plus the VAS and
-# MADRS totals. Any column not present in this CSV (e.g. madrs_score) is silently
-# skipped by the `in scores.columns` filter.
+RUN_PARENT = BASE / "sub-PR05-clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
+OUT_DIR = RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_hamd_correlation_datematched"
+
+# Score set: HAM-D-6 total + its six individual items, plus VAS anxiety/depression
+# and (self-report) MADRS total. These are the columns available numerically in
+# BOTH survey exports (Stage-3 HAMD items are derived from text labels via HAMD_MAP).
 SCORE_COLS = [
     "hamd_total",
     "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6",
-    "vas_anxiety", "vas_depression", "madrs_total", "madrs_score",
+    "vas_anxiety", "vas_depression", "madrs_total",
 ]
 
-# Display labels for the six-item clinician HAM-D responses (per the standard
-# 6-item structure) and the other scores, used on heatmap/scatter axes.
+# Display labels for the six HAM-D-6 self-report items (standard 6-item structure)
+# and the other scores, used on heatmap/scatter axes.
 SCORE_LABELS = {
     "hamd_total": "HAM-D total",
     "hamd_q1": "1. Depressed mood",
@@ -48,70 +44,70 @@ SCORE_LABELS = {
     "hamd_q6": "6. Somatic symptoms",
     "vas_anxiety": "VAS anxiety",
     "vas_depression": "VAS depression",
-    "madrs_total": "MADRS total",
-    "madrs_score": "MADRS score",
+    "madrs_total": "MADRS total (self-report)",
 }
 
 FEATURE_DIRS = {
     "pitch": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_pitch_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_pitch_metadata",
         "_pitches.csv",
         ["pitch_mean", "pitch_std", "pitch_median", "pitch_iqr"],
     ),
     "loudness": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_loudness_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_loudness_metadata",
         "_loudness_in_db.csv",
         ["active_intensity_vals_mean", "intensity_std", "intensity_median", "intensity_iqr"],
     ),
     "f3": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_f3_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_f3_metadata",
         "_relative_energy_formant.csv",
         ["mean_rel_energy_f_i", "rel_energy_std", "rel_energy_median", "rel_energy_iqr"],
     ),
     "alpha_ratio": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_alpha_ratio_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_alpha_ratio_metadata",
         "_alpha_ratio.csv",
         ["alpha_ratio_mean", "alpha_ratio_std", "alpha_ratio_median", "alpha_ratio_iqr"],
     ),
     "jitter": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_jitter_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_jitter_metadata",
         "_jitter.csv",
         ["jitter_val"],
     ),
     "shimmer": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_shimmer_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_shimmer_metadata",
         "_shimmer_apqN.csv",
         ["shimmer_val"],
     ),
     "wpm": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_wpm_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_wpm_metadata",
         "_wpm.csv",
         ["wpm"],
     ),
     "hnr": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_hnr_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_hnr_metadata",
         "_hnr.csv",
         ["hnr_mean", "hnr_std", "hnr_median", "hnr_iqr"],
     ),
     "zcr": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_zcr_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_zcr_metadata",
         "_zcr.csv",
         ["zcr_mean", "zcr_std", "zcr_median", "zcr_iqr"],
     ),
     "mfcc": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_mfcc_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_mfcc_metadata",
         "_mfcc.csv",
         ["mfcc_c0_mean", "mfcc_c1_mean", "mfcc_c2_mean", "mfcc_c3_mean", "mfcc_c4_mean", "mfcc_c5_mean", "mfcc_c6_mean", "mfcc_c7_mean", "mfcc_c8_mean", "mfcc_c9_mean", "mfcc_c10_mean", "mfcc_c11_mean", "mfcc_c12_mean"],
     ),
     "cpps": (
-        RUN_PARENT / "sub-PR05_stage-3_audio-audiotype_preproc_spectral_gating_100_percent_cpps_metadata",
+        RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_cpps_metadata",
         "_cpps.csv",
         ["cpps"],
     ),
 }
 
-# Matches  sub-PR05_stage-3_audio_signal-preproc_<id>_<metric>.csv
-SUBJECT_RE = re.compile(r"signal-preproc_(?:wiener_)?(\d+)_")
+# Feature CSVs are named GMT<date>-<time>_Recording_isolated_preproc_<metric>.csv;
+# the audio_id is the recording stem, which matches the CSV `Filename` (minus .m4a).
+SUBJECT_RE = re.compile(r"(GMT\d{8}-\d{6}_Recording)")
 
 
 def extract_id(path: Path) -> str | None:
@@ -139,14 +135,74 @@ def build_feature_table() -> pd.DataFrame:
     return merged
 
 
+def _unified_survey_pool() -> pd.DataFrame:
+    """Combine the Stage-2 (numeric) and Stage-3 (labelled) at-home survey exports
+    into one timestamped table with a common numeric score schema."""
+    hmap = json.loads(Path(HAMD_MAP).read_text())  # keys "<colidx>|||<label>" -> int
+
+    s2 = pd.read_csv(STAGE2_CSV)
+    a = pd.DataFrame({
+        "time": pd.to_datetime(s2["start_local_timestamp"], errors="coerce"),
+        "hamd_total": pd.to_numeric(s2["hamd_total"], errors="coerce"),
+        **{f"hamd_q{k}": pd.to_numeric(s2[f"hamd_q{k}"], errors="coerce") for k in range(1, 7)},
+        "vas_anxiety": pd.to_numeric(s2["vas_anxiety"], errors="coerce"),
+        "vas_depression": pd.to_numeric(s2["vas_depression"], errors="coerce"),
+        "madrs_total": pd.to_numeric(s2["madrs_total"], errors="coerce"),
+        "source": "stage2",
+    })
+
+    s3 = pd.read_csv(STAGE3_CSV)
+    # Stage-3 HAMD items live in columns 10-15 as text; map to 0..4 via HAMD_MAP.
+    q = {f"hamd_q{k}": s3.iloc[:, ci].map(lambda l, ci=ci: hmap.get(f"{ci}|||{l}", np.nan))
+         for k, ci in zip(range(1, 7), range(10, 16))}
+    b = pd.DataFrame({
+        "time": pd.to_datetime(s3["Date and time of assessment:"], errors="coerce"),
+        "hamd_total": pd.to_numeric(s3.iloc[:, 16], errors="coerce"),   # "HAMD-6 score"
+        **q,
+        "vas_anxiety": pd.to_numeric(s3.iloc[:, 4], errors="coerce"),    # "Anxiety"
+        "vas_depression": pd.to_numeric(s3.iloc[:, 6], errors="coerce"), # "Depression"
+        "madrs_total": pd.to_numeric(s3.iloc[:, 29], errors="coerce"),   # "Total score"
+        "source": "stage3",
+    })
+
+    pool = pd.concat([a, b], ignore_index=True).dropna(subset=["time"])
+    return pool.sort_values("time").reset_index(drop=True)
+
+
+def _recording_times() -> pd.DataFrame:
+    """GMT filename (UTC) -> US/Pacific local time (DST-aware) for each recording."""
+    rows = []
+    for w in sorted(glob.glob(f"{PREPROC_DIR}/*.wav")):
+        m = re.search(r"GMT(\d{8})-(\d{6})", os.path.basename(w))
+        utc = pd.Timestamp(m.group(1) + m.group(2)).tz_localize("UTC")
+        loc = utc.tz_convert(ZoneInfo("US/Pacific")).tz_localize(None)
+        rows.append({"audio_id": os.path.basename(w).split("_Recording")[0] + "_Recording",
+                     "rec_time": loc})
+    return pd.DataFrame(rows).sort_values("rec_time").reset_index(drop=True)
+
+
 def load_scores() -> pd.DataFrame:
-    df = pd.read_csv(SCORES_CSV)
-    df["audio_id"] = df["record_id"].astype(str)
-    keep = ["audio_id"] + [c for c in SCORE_COLS if c in df.columns]
-    df = df[keep].dropna(subset=["audio_id"])
-    # one row per record_id (groupby.first takes the first non-null per column)
-    df = df.groupby("audio_id", as_index=False).first()
-    return df
+    """Match each clinician recording to its NEAREST at-home survey by timestamp.
+
+    Writes a full audit (recording time, matched survey time, gap, source, scores)
+    to score_match_audit.csv. Recordings whose nearest survey is more than
+    MATCH_TOLERANCE_H hours away (e.g. the 2026 recordings that post-date the last
+    survey) are dropped from the correlation but retained in the audit.
+    """
+    pool = _unified_survey_pool()
+    recs = _recording_times()
+    m = pd.merge_asof(recs, pool, left_on="rec_time", right_on="time", direction="nearest")
+    m["gap_hours"] = (m["rec_time"] - m["time"]).abs().dt.total_seconds() / 3600.0
+
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    audit_cols = ["audio_id", "rec_time", "time", "gap_hours", "source"] + SCORE_COLS
+    m[audit_cols].to_csv(OUT_DIR / "score_match_audit.csv", index=False)
+    n_drop = int((m["gap_hours"] > MATCH_TOLERANCE_H).sum())
+    print(f"survey pool={len(pool)} rows; recordings={len(recs)}; "
+          f"matched within {MATCH_TOLERANCE_H:.0f}h={len(m) - n_drop}; dropped(gap too large)={n_drop}")
+
+    keep = m[m["gap_hours"] <= MATCH_TOLERANCE_H].copy()
+    return keep[["audio_id"] + SCORE_COLS]
 
 
 def correlate(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str]) -> pd.DataFrame:
@@ -234,14 +290,19 @@ def plot_scatter_grid(df: pd.DataFrame, score: str, feature_cols: list[str], out
         flabel = feature_label(f)
         sub = df[[score, f]].apply(pd.to_numeric, errors="coerce").dropna()
         ax.scatter(sub[score], sub[f], alpha=0.6, s=20)
-        if len(sub) >= 3:
+        # only fit a trendline / correlation when both axes vary (constant columns
+        # are common with the small clinician-scale n and break pearsonr/polyfit)
+        if len(sub) >= 3 and sub[score].std() > 0 and sub[f].std() > 0:
             r, p = pearsonr(sub[score], sub[f])
-            z = np.polyfit(sub[score], sub[f], 1)
-            xs = np.linspace(sub[score].min(), sub[score].max(), 50)
-            ax.plot(xs, np.polyval(z, xs), color="red", lw=1)
+            try:
+                z = np.polyfit(sub[score], sub[f], 1)
+                xs = np.linspace(sub[score].min(), sub[score].max(), 50)
+                ax.plot(xs, np.polyval(z, xs), color="red", lw=1)
+            except np.linalg.LinAlgError:
+                pass
             ax.set_title(f"{flabel}\nr={r:.2f}, p={_fmt_p(p)}, n={len(sub)}", fontsize=9)
         else:
-            ax.set_title(f"{flabel}\n(n<3)", fontsize=9)
+            ax.set_title(f"{flabel}\n(n<3 or constant)", fontsize=9)
         ax.set_xlabel(label)
         ax.set_ylabel(flabel, fontsize=8)
     for ax in axes[len(feature_cols):]:

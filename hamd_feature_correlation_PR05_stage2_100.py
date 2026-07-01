@@ -1,19 +1,3 @@
-"""Correlation + scatter plots of HAM-D / anxiety / MADRS scores vs voice features
-for PR05 Stage 3, 100% spectral-gating preprocessing.
-
-Same design as the PR05 Stage 2 spectral-gating correlation script, but:
-  • Reads feature metadata from the PR05 Stage 3 spectral_gating_100_percent subfolders.
-  • Scores come from PR05Stage3_DATA_2026-06-07_1941.csv. REDCap names each audio
-    file <record_id>_audio.m4a, so the feature audio_id (the <num> parsed from the
-    preprocessed wav name) joins DIRECTLY to the CSV record_id. This is confirmed by
-    index.html, where record N's Original_Filename equals the CSV `audio` value.
-  • Four feature families (pitch / loudness / f3 / alpha_ratio); no jitter/shimmer
-    (those exist only in the separate wiener variant).
-
-Usage:
-    python hamd_feature_correlation_PR05_stage3.py
-"""
-
 import re
 from pathlib import Path
 
@@ -25,12 +9,12 @@ from scipy.stats import pearsonr, spearmanr
 BASE = Path("/userdata/msharma")
 XLSX = BASE / "PR05 List of Video Filenames.xlsx"
 SHEET = "Stage 2 AudioScore Match"
-PREFIX = "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering"
-RUN_PARENT = BASE / "sub-PR05-stage-2_audio-audiotype_preproc_wiener_filtering_metadata_and_plots"
-OUT_DIR = RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filtering_hamd_correlation"
+PREFIX = "sub-PR05_stage-2_audio-audiotype_preproc_spectral_gating_100_percent"
+RUN_PARENT = BASE / "sub-PR05-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
+OUT_DIR = RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_hamd_correlation"
 
 # Score set: HAM-D total + its six individual clinician items, plus the VAS and
-# MADRS totals. Any column not present in this CSV (e.g. madrs_score) is silently
+# MADRS totals. Any column not present in this CSV (e.g. madrs_score) is
 # skipped by the `in scores.columns` filter.
 SCORE_COLS = ["hamd_total", "vas_anxiety", "vas_depression", "madrs_total", "madrs_score"]
 
