@@ -145,14 +145,14 @@ if __name__ == "__main__":
 
     # ---- PR08 / PR09: single Stage-2 sources ----
     pr08 = load_source(
-        f"{UD}/sub-PR08-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots",
-        "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent",
+        f"{UD}/sub-PR08-pre-stage2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots",
+        "sub-PR08_pre-stage2_audio-audiotype_preproc_spectral_gating_100_percent",
         timestamps_from_csv(f"{UD}/PR08PreStage2_DATA_2026-04-18_1616.csv",
                             ["audio_task_timestamp", "start_timestamp_local", "completion_pt_timestamp"]), "Stage2")
-    plot_heatmap("PR08", pr08, f"{out}/PR08_pitch_mfcc_time_heatmap.png")
+    plot_heatmap("PR08 Pre-Stage 2", pr08, f"{out}/PR08_pitch_mfcc_time_heatmap.png")
 
     pr09 = load_source(
         f"{UD}/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots",
         "sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent",
         timestamps_from_index("/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/Files_PR09Stage2_2026-04-18_1541/index.html"), "Stage2")
-    plot_heatmap("PR09", pr09, f"{out}/PR09_pitch_mfcc_time_heatmap.png")
+    plot_heatmap("PR09 Stage 2", pr09, f"{out}/PR09_pitch_mfcc_time_heatmap.png")

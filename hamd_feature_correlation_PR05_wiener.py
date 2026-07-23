@@ -1,19 +1,3 @@
-"""Correlation + scatter plots of HAM-D / anxiety / MADRS scores vs voice features
-for PR05 Stage 3, 100% spectral-gating preprocessing.
-
-Same design as the PR05 Stage 2 spectral-gating correlation script, but:
-  • Reads feature metadata from the PR05 Stage 3 spectral_gating_100_percent subfolders.
-  • Scores come from PR05Stage3_DATA_2026-06-07_1941.csv. REDCap names each audio
-    file <record_id>_audio.m4a, so the feature audio_id (the <num> parsed from the
-    preprocessed wav name) joins DIRECTLY to the CSV record_id. This is confirmed by
-    index.html, where record N's Original_Filename equals the CSV `audio` value.
-  • Four feature families (pitch / loudness / f3 / alpha_ratio); no jitter/shimmer
-    (those exist only in the separate wiener variant).
-
-Usage:
-    python hamd_feature_correlation_PR05_stage3.py
-"""
-
 import re
 from pathlib import Path
 
@@ -32,7 +16,7 @@ OUT_DIR = RUN_PARENT / "sub-PR05_stage-2_audio-audiotype_preproc_wiener_filterin
 # Score set: HAM-D total + its six individual clinician items, plus the VAS and
 # MADRS totals. Any column not present in this CSV (e.g. madrs_score) is silently
 # skipped by the `in scores.columns` filter.
-SCORE_COLS = ["hamd_total", "vas_anxiety", "vas_depression", "madrs_total", "madrs_score"]
+SCORE_COLS = ["hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6", "vas_anxiety", "vas_depression", "madrs_total"]
 
 # Display labels for the six-item clinician HAM-D responses (per the standard
 # 6-item structure) and the other scores, used on heatmap/scatter axes.
@@ -101,12 +85,12 @@ def build_feature_table() -> pd.DataFrame:
 
 
 def load_scores() -> pd.DataFrame:
-    # Stage-2 at-home audio is matched to scores via the validated XLSX lookup
-    # sheet (the audio file number is the leading integer of Filename); this is
-    # the same join the wiener Stage-2 correlation used (214 subjects).
+    # Stage-2 audio number is a SEPARATE counter from the survey record_id (a
+    # record_id join mis-pairs recordings). The "Stage 2 AudioScore Match" sheet
+    # holds the correct audio->survey time-match with REDCap scores (incl hamd_q1-6).
     df = pd.read_excel(XLSX, sheet_name=SHEET)
     df = df[df["Filename"].notna()].copy()
-    df["audio_id"] = df["Filename"].astype(str).str.extract(r"^(\d+)")[0]
+    df["audio_id"] = df["Filename"].astype(str).str.split("_").str[0]
     keep = ["audio_id"] + [c for c in SCORE_COLS if c in df.columns]
     df = df[keep].dropna(subset=["audio_id"])
     df = df.groupby("audio_id", as_index=False).first()
@@ -157,6 +141,9 @@ def feature_label(col: str) -> str:
     return f"{family}_{metric}"  # f3_mean_rel_energy_f_i, loudness_active_intensity_vals_mean
 
 
+DATASET_LABEL = "PR05 Stage 2 (wiener)"
+
+
 def plot_heatmap(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str], out_path: Path):
     rmat = np.full((len(feature_cols), len(score_cols)), np.nan)
     pmat = np.full((len(feature_cols), len(score_cols)), np.nan)
@@ -182,7 +169,7 @@ def plot_heatmap(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str
                 ax.text(j, i, txt, ha="center", va="center",
                         color="white" if abs(rmat[i, j]) > 0.5 else "black", fontsize=6)
     fig.colorbar(im, ax=ax, label="Pearson r")
-    ax.set_title("Clinical scores vs voice features (Pearson r; p below, * p<0.05)")
+    ax.set_title(f"{DATASET_LABEL}: clinical scores vs voice features (Pearson r; p below, * p<0.05)")
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -210,7 +197,7 @@ def plot_scatter_grid(df: pd.DataFrame, score: str, feature_cols: list[str], out
         ax.set_ylabel(flabel, fontsize=8)
     for ax in axes[len(feature_cols):]:
         ax.axis("off")
-    fig.suptitle(f"{label} vs voice features", fontsize=13)
+    fig.suptitle(f"{DATASET_LABEL}: {label} vs voice features", fontsize=13)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)

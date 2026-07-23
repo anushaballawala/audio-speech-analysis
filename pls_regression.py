@@ -32,7 +32,7 @@ scores_from_xlsx = _ns["scores_from_xlsx"]; scores_from_csv = _ns["scores_from_c
 scores_from_clinician_audit = _ns["scores_from_clinician_audit"]; scores_from_pr09 = _ns["scores_from_pr09"]
 S2P, S2X, S3P, S3X, CLP, CLX, CL_AUDIT, XLSX = (_ns[k] for k in ["S2P","S2X","S3P","S3X","CLP","CLX","CL_AUDIT","XLSX"])
 
-TARGETS = ["hamd_total", "madrs_total", "vas_anxiety", "vas_depression"]
+TARGETS = ["hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6", "madrs_total", "vas_anxiety", "vas_depression"]
 MAX_COMP = 10
 
 
@@ -104,8 +104,8 @@ def run(name, parent, prefix, id_re, score_df, out_parent, out_prefix):
 
 
 if __name__ == "__main__":
-    P8 = f"{UD}/sub-PR08-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
-    X8 = "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent"
+    P8 = f"{UD}/sub-PR08-pre-stage2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
+    X8 = "sub-PR08_pre-stage2_audio-audiotype_preproc_spectral_gating_100_percent"
     P9 = f"{UD}/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
     X9 = "sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent"
     INDEX9 = "/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/Files_PR09Stage2_2026-04-18_1541/index.html"
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         scores_from_csv(f"{UD}/PR05Stage3_DATA_2026-06-07_1941.csv",
                         ["audio_task_timestamp", "start_local_timestamp", "completion_pt_timestamp"]), S3P, S3X)
     run("PR05 Clinician", CLP, CLX, CLINICIAN_RE, scores_from_clinician_audit(CL_AUDIT), CLP, CLX)
-    run("PR08 Stage 2", P8, X8, SUBJECT_RE,
+    run("PR08 Pre-Stage 2", P8, X8, SUBJECT_RE,
         scores_from_csv(f"{UD}/PR08PreStage2_DATA_2026-04-18_1616.csv",
                         ["audio_task_timestamp", "start_timestamp_local", "completion_pt_timestamp"]), P8, X8)
     run("PR09 Stage 2", P9, X9, SUBJECT_RE, scores_from_pr09(f"{UD}/PR09Stage2_DATA_2026-04-18_1544.csv", INDEX9), P9, X9)

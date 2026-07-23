@@ -1,14 +1,3 @@
-"""Correlation + scatter plots of HAM-D / anxiety / MADRS scores vs voice features.
-
-Pulls per-subject summary stats from the four feature metadata directories
-(pitch, loudness, F3 relative energy, alpha ratio), merges with clinical
-scores from the "Stage 2 AudioScore Match" sheet of the PR05 filename
-workbook, and writes correlations + matplotlib plots.
-
-Usage:
-    python hamd_feature_correlation.py
-"""
-
 import re
 from pathlib import Path
 

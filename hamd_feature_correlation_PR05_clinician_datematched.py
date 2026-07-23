@@ -12,28 +12,27 @@ from scipy.stats import pearsonr, spearmanr
 
 BASE = Path("/userdata/msharma")
 # Two at-home self-report survey exports (2026-06-29) that together span the
-# clinician-recording date range. Scores are matched to each clinician recording
-# by NEAREST timestamp (see load_scores), not by a filename key.
+# clinician-recording date range. Scores  matched to each clinician recording
+# by NEAREST timestamp (see load_scores)
 STAGE2_CSV = BASE / "PR05Stage2_DATA_2026-06-29_1836.csv"
-STAGE3_CSV = BASE / "PR05Stage3_DATA_LABELS_2026-06-29_1844.csv"
-HAMD_MAP = BASE / "hamd_label_map.json"      # Stage-3 HAMD item label -> 0..4 (verified lossless)
+STAGE3_CSV = BASE / "PR05Stage3_DATA_2026-06-07_1941.csv"   # numeric export (hamd_q1-6 already numeric)
 PREPROC_DIR = "/data_store2/resection/neuropsych_video/presidio/Stage2/ClinicianScales/PR05/PR05_clinician_scales_audio_preproc_spectral_gating_100_percent"
 MATCH_TOLERANCE_H = 48.0                      # drop recordings whose nearest survey is > this many hours away
 
 RUN_PARENT = BASE / "sub-PR05-clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
 OUT_DIR = RUN_PARENT / "sub-PR05_clinician_scales_audio-audiotype_preproc_spectral_gating_100_percent_hamd_correlation_datematched"
 
-# Score set: HAM-D-6 total + its six individual items, plus VAS anxiety/depression
-# and (self-report) MADRS total. These are the columns available numerically in
-# BOTH survey exports (Stage-3 HAMD items are derived from text labels via HAMD_MAP).
+# Score set: HAM-D-6 total + its six individual items, VAS anxiety/depression
+# and (self-report) MADRS total, columns available numerically in
+# both survey exports (Stage-3 HAMD items  derived from text labels via HAMD_MAP)
 SCORE_COLS = [
     "hamd_total",
     "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6",
     "vas_anxiety", "vas_depression", "madrs_total",
 ]
 
-# Display labels for the six HAM-D-6 self-report items (standard 6-item structure)
-# and the other scores, used on heatmap/scatter axes.
+# Display labels for the six HAM-D-6 self-report items 
+# and the other scores used on heatmap/scatter axes
 SCORE_LABELS = {
     "hamd_total": "HAM-D total",
     "hamd_q1": "1. Depressed mood",
@@ -105,8 +104,8 @@ FEATURE_DIRS = {
     ),
 }
 
-# Feature CSVs are named GMT<date>-<time>_Recording_isolated_preproc_<metric>.csv;
-# the audio_id is the recording stem, which matches the CSV `Filename` (minus .m4a).
+# Feature CSVs  named GMT<date>-<time>_Recording_isolated_preproc_<metric>.csv;
+#  audio_id is the recording stem, which matches the CSV `Filename` except .m4a
 SUBJECT_RE = re.compile(r"(GMT\d{8}-\d{6}_Recording)")
 
 
@@ -138,32 +137,22 @@ def build_feature_table() -> pd.DataFrame:
 def _unified_survey_pool() -> pd.DataFrame:
     """Combine the Stage-2 (numeric) and Stage-3 (labelled) at-home survey exports
     into one timestamped table with a common numeric score schema."""
-    hmap = json.loads(Path(HAMD_MAP).read_text())  # keys "<colidx>|||<label>" -> int
+    def _numeric_survey(csv, src):
+        d = pd.read_csv(csv)
+        return pd.DataFrame({
+            "time": pd.to_datetime(d["start_local_timestamp"], errors="coerce"),
+            "hamd_total": pd.to_numeric(d["hamd_total"], errors="coerce"),
+            **{f"hamd_q{k}": pd.to_numeric(d[f"hamd_q{k}"], errors="coerce") for k in range(1, 7)},
+            "vas_anxiety": pd.to_numeric(d["vas_anxiety"], errors="coerce"),
+            "vas_depression": pd.to_numeric(d["vas_depression"], errors="coerce"),
+            "madrs_total": pd.to_numeric(d["madrs_total"], errors="coerce"),
+            "source": src,
+        })
 
-    s2 = pd.read_csv(STAGE2_CSV)
-    a = pd.DataFrame({
-        "time": pd.to_datetime(s2["start_local_timestamp"], errors="coerce"),
-        "hamd_total": pd.to_numeric(s2["hamd_total"], errors="coerce"),
-        **{f"hamd_q{k}": pd.to_numeric(s2[f"hamd_q{k}"], errors="coerce") for k in range(1, 7)},
-        "vas_anxiety": pd.to_numeric(s2["vas_anxiety"], errors="coerce"),
-        "vas_depression": pd.to_numeric(s2["vas_depression"], errors="coerce"),
-        "madrs_total": pd.to_numeric(s2["madrs_total"], errors="coerce"),
-        "source": "stage2",
-    })
-
-    s3 = pd.read_csv(STAGE3_CSV)
-    # Stage-3 HAMD items live in columns 10-15 as text; map to 0..4 via HAMD_MAP.
-    q = {f"hamd_q{k}": s3.iloc[:, ci].map(lambda l, ci=ci: hmap.get(f"{ci}|||{l}", np.nan))
-         for k, ci in zip(range(1, 7), range(10, 16))}
-    b = pd.DataFrame({
-        "time": pd.to_datetime(s3["Date and time of assessment:"], errors="coerce"),
-        "hamd_total": pd.to_numeric(s3.iloc[:, 16], errors="coerce"),   # "HAMD-6 score"
-        **q,
-        "vas_anxiety": pd.to_numeric(s3.iloc[:, 4], errors="coerce"),    # "Anxiety"
-        "vas_depression": pd.to_numeric(s3.iloc[:, 6], errors="coerce"), # "Depression"
-        "madrs_total": pd.to_numeric(s3.iloc[:, 29], errors="coerce"),   # "Total score"
-        "source": "stage3",
-    })
+    # Both Stage-2 and Stage-3 use the numeric REDCap DATA exports (identical schema;
+    # hamd_q1-6 already numeric — no label decoding needed).
+    a = _numeric_survey(STAGE2_CSV, "stage2")
+    b = _numeric_survey(STAGE3_CSV, "stage3")
 
     pool = pd.concat([a, b], ignore_index=True).dropna(subset=["time"])
     return pool.sort_values("time").reset_index(drop=True)
@@ -249,6 +238,9 @@ def feature_label(col: str) -> str:
     return f"{family}_{metric}"  # f3_mean_rel_energy_f_i, loudness_active_intensity_vals_mean
 
 
+DATASET_LABEL = "PR05 Clinician Scales"
+
+
 def plot_heatmap(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str], out_path: Path):
     rmat = np.full((len(feature_cols), len(score_cols)), np.nan)
     pmat = np.full((len(feature_cols), len(score_cols)), np.nan)
@@ -274,7 +266,7 @@ def plot_heatmap(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str
                 ax.text(j, i, txt, ha="center", va="center",
                         color="white" if abs(rmat[i, j]) > 0.5 else "black", fontsize=6)
     fig.colorbar(im, ax=ax, label="Pearson r")
-    ax.set_title("Clinical scores vs voice features (Pearson r; p below, * p<0.05)")
+    ax.set_title(f"{DATASET_LABEL}: clinical scores vs voice features (Pearson r; p below, * p<0.05)")
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -307,7 +299,7 @@ def plot_scatter_grid(df: pd.DataFrame, score: str, feature_cols: list[str], out
         ax.set_ylabel(flabel, fontsize=8)
     for ax in axes[len(feature_cols):]:
         ax.axis("off")
-    fig.suptitle(f"{label} vs voice features", fontsize=13)
+    fig.suptitle(f"{DATASET_LABEL}: {label} vs voice features", fontsize=13)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)

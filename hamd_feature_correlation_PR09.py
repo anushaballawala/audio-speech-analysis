@@ -1,15 +1,3 @@
-"""HAM-D / VAS correlation + scatter plots vs voice features for PR09.
-
-Audio files in Files_PR09Stage2_2026-04-18_1541/documents are N_audio.m4a; their upload
-datetimes come from the sibling index.html (original filenames are 'New Recording N'
-style, so filename-based join with the CSV is not possible).  Clinical scores live in
-PR09Stage2_DATA_2026-04-18_1544.csv as completion_pt rows with survey timestamps.
-Each audio is matched to the closest completion_pt survey by timestamp.
-
-Usage:
-    python hamd_feature_correlation_PR09.py
-"""
-
 import re
 import html as html_lib
 from datetime import datetime
@@ -29,10 +17,16 @@ INDEX_HTML = Path(
 RUN_PARENT = BASE / "sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
 OUT_DIR = RUN_PARENT / "sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent_hamd_correlation"
 
-SCORE_COLS = ["hamd_total", "vas_anxiety", "vas_depression", "vas_lowenergy"]
+SCORE_COLS = ["hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6", "vas_anxiety", "vas_depression", "vas_lowenergy"]
 
 SCORE_LABELS = {
     "hamd_total": "HAM-D total",
+    "hamd_q1": "1. Depressed mood",
+    "hamd_q2": "2. Self-esteem and guilt",
+    "hamd_q3": "3. Social interaction and interests",
+    "hamd_q4": "4. Psychomotor retardation",
+    "hamd_q5": "5. Anxiety",
+    "hamd_q6": "6. Somatic symptoms",
     "vas_anxiety": "VAS anxiety",
     "vas_depression": "VAS depression",
     "vas_lowenergy": "VAS low energy",
@@ -173,6 +167,9 @@ def _fmt_p(p: float) -> str:
     return f"{p:.3f}"
 
 
+DATASET_LABEL = "PR09 Stage 2"
+
+
 def plot_heatmap(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str], out_path: Path):
     rmat = np.full((len(feature_cols), len(score_cols)), np.nan)
     pmat = np.full((len(feature_cols), len(score_cols)), np.nan)
@@ -198,7 +195,7 @@ def plot_heatmap(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str
                 ax.text(j, i, txt, ha="center", va="center",
                         color="white" if abs(rmat[i, j]) > 0.5 else "black", fontsize=6)
     fig.colorbar(im, ax=ax, label="Pearson r")
-    ax.set_title("Clinical scores vs voice features (Pearson r; p below, * p<0.05)")
+    ax.set_title(f"{DATASET_LABEL}: clinical scores vs voice features (Pearson r; p below, * p<0.05)")
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -225,7 +222,7 @@ def plot_scatter_grid(df: pd.DataFrame, score: str, feature_cols: list[str], out
         ax.set_ylabel(flabel, fontsize=8)
     for ax in axes[len(feature_cols):]:
         ax.axis("off")
-    fig.suptitle(f"{label} vs voice features", fontsize=13)
+    fig.suptitle(f"{DATASET_LABEL}: {label} vs voice features", fontsize=13)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)

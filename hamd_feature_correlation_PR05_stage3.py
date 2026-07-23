@@ -1,19 +1,3 @@
-"""Correlation + scatter plots of HAM-D / anxiety / MADRS scores vs voice features
-for PR05 Stage 3, 100% spectral-gating preprocessing.
-
-Same design as the PR05 Stage 2 spectral-gating correlation script, but:
-  • Reads feature metadata from the PR05 Stage 3 spectral_gating_100_percent subfolders.
-  • Scores come from PR05Stage3_DATA_2026-06-07_1941.csv. REDCap names each audio
-    file <record_id>_audio.m4a, so the feature audio_id (the <num> parsed from the
-    preprocessed wav name) joins DIRECTLY to the CSV record_id. This is confirmed by
-    index.html, where record N's Original_Filename equals the CSV `audio` value.
-  • Four feature families (pitch / loudness / f3 / alpha_ratio); no jitter/shimmer
-    (those exist only in the separate wiener variant).
-
-Usage:
-    python hamd_feature_correlation_PR05_stage3.py
-"""
-
 import re
 from pathlib import Path
 
@@ -193,6 +177,9 @@ def feature_label(col: str) -> str:
     return f"{family}_{metric}"  # f3_mean_rel_energy_f_i, loudness_active_intensity_vals_mean
 
 
+DATASET_LABEL = "PR05 Stage 3"
+
+
 def plot_heatmap(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str], out_path: Path):
     rmat = np.full((len(feature_cols), len(score_cols)), np.nan)
     pmat = np.full((len(feature_cols), len(score_cols)), np.nan)
@@ -218,7 +205,7 @@ def plot_heatmap(df: pd.DataFrame, score_cols: list[str], feature_cols: list[str
                 ax.text(j, i, txt, ha="center", va="center",
                         color="white" if abs(rmat[i, j]) > 0.5 else "black", fontsize=6)
     fig.colorbar(im, ax=ax, label="Pearson r")
-    ax.set_title("Clinical scores vs voice features (Pearson r; p below, * p<0.05)")
+    ax.set_title(f"{DATASET_LABEL}: clinical scores vs voice features (Pearson r; p below, * p<0.05)")
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -246,7 +233,7 @@ def plot_scatter_grid(df: pd.DataFrame, score: str, feature_cols: list[str], out
         ax.set_ylabel(flabel, fontsize=8)
     for ax in axes[len(feature_cols):]:
         ax.axis("off")
-    fig.suptitle(f"{label} vs voice features", fontsize=13)
+    fig.suptitle(f"{DATASET_LABEL}: {label} vs voice features", fontsize=13)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)

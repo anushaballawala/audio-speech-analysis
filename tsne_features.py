@@ -69,9 +69,9 @@ def scores_from_csv(csv, ts_cols):
             cur = pd.to_datetime(d[c], errors="coerce")
             ts = cur if ts is None else ts.fillna(cur)
     d["ts"] = ts
-    for c in ["madrs_total", "vas_anxiety", "vas_depression", "hamd_total"]:
+    for c in ["madrs_total", "vas_anxiety", "vas_depression", "hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6"]:
         d[c] = pd.to_numeric(d[c], errors="coerce") if c in d.columns else np.nan
-    return d[["id", "ts", "madrs_total", "vas_anxiety", "vas_depression", "hamd_total"]].dropna(subset=["ts"]).drop_duplicates("id")
+    return d[["id", "ts", "madrs_total", "vas_anxiety", "vas_depression", "hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6"]].dropna(subset=["ts"]).drop_duplicates("id")
 
 
 def scores_from_xlsx(xlsx, sheet, ts_col):
@@ -79,9 +79,9 @@ def scores_from_xlsx(xlsx, sheet, ts_col):
     d = d[d["Filename"].notna()].copy()
     d["id"] = d["Filename"].astype(str).str.extract(r"^(\d+)")[0]
     d["ts"] = pd.to_datetime(d[ts_col], errors="coerce")
-    for c in ["madrs_total", "vas_anxiety", "vas_depression", "hamd_total"]:
+    for c in ["madrs_total", "vas_anxiety", "vas_depression", "hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6"]:
         d[c] = pd.to_numeric(d[c], errors="coerce") if c in d.columns else np.nan
-    return d[["id", "ts", "madrs_total", "vas_anxiety", "vas_depression", "hamd_total"]].dropna(subset=["id", "ts"]).drop_duplicates("id")
+    return d[["id", "ts", "madrs_total", "vas_anxiety", "vas_depression", "hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6"]].dropna(subset=["id", "ts"]).drop_duplicates("id")
 
 
 def scores_from_clinician_audit(audit_csv, gap_tol=48.0):
@@ -90,10 +90,10 @@ def scores_from_clinician_audit(audit_csv, gap_tol=48.0):
     d["ts"] = pd.to_datetime(d["rec_time"], errors="coerce")
     # scores from a survey > gap_tol hours away are unreliable -> NaN for coloring
     far = pd.to_numeric(d["gap_hours"], errors="coerce") > gap_tol
-    for c in ["madrs_total", "vas_anxiety", "vas_depression", "hamd_total"]:
+    for c in ["madrs_total", "vas_anxiety", "vas_depression", "hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6"]:
         d[c] = pd.to_numeric(d[c], errors="coerce")
         d.loc[far, c] = np.nan
-    return d[["id", "ts", "madrs_total", "vas_anxiety", "vas_depression", "hamd_total"]].dropna(subset=["ts"]).drop_duplicates("id")
+    return d[["id", "ts", "madrs_total", "vas_anxiety", "vas_depression", "hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6"]].dropna(subset=["ts"]).drop_duplicates("id")
 
 
 INDEX_ROW_RE = re.compile(
@@ -113,12 +113,12 @@ def scores_from_pr09(csv, index_html):
     tcol = "start_local_timestamp" if "start_local_timestamp" in d.columns else "start_timestamp_local"
     d["survey_ts"] = pd.to_datetime(d[tcol].fillna(d["completion_pt_timestamp"]), errors="coerce")
     d = d.dropna(subset=["survey_ts"]).sort_values("survey_ts")
-    for c in ["vas_anxiety", "vas_depression", "hamd_total"]:
+    for c in ["vas_anxiety", "vas_depression", "hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6"]:
         d[c] = pd.to_numeric(d[c], errors="coerce") if c in d.columns else np.nan
     d["madrs_total"] = np.nan
     merged = pd.merge_asof(up.sort_values("ts"), d.rename(columns={"survey_ts": "ts"}),
                            on="ts", direction="nearest")
-    return merged[["id", "ts", "madrs_total", "vas_anxiety", "vas_depression", "hamd_total"]]
+    return merged[["id", "ts", "madrs_total", "vas_anxiety", "vas_depression", "hamd_total", "hamd_q1", "hamd_q2", "hamd_q3", "hamd_q4", "hamd_q5", "hamd_q6"]]
 
 
 def run_patient(name, sources, out_parent, out_prefix, severity_col_label):
@@ -205,9 +205,9 @@ if __name__ == "__main__":
     ], f"{UD}/PR05_tsne_all_data_metadata_and_plots", "PR05_tsne_all_data", "MADRS total")
 
     # PR08 (no MADRS -> HAM-D total as severity)
-    P8 = f"{UD}/sub-PR08-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
-    X8 = "sub-PR08_stage-2_audio-audiotype_preproc_spectral_gating_100_percent"
-    run_patient("PR08", [
+    P8 = f"{UD}/sub-PR08-pre-stage2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
+    X8 = "sub-PR08_pre-stage2_audio-audiotype_preproc_spectral_gating_100_percent"
+    run_patient("PR08 Pre-Stage 2", [
         (P8, X8, SUBJECT_RE, scores_from_csv(f"{UD}/PR08PreStage2_DATA_2026-04-18_1616.csv",
                                             ["audio_task_timestamp", "start_timestamp_local", "completion_pt_timestamp"]), "Stage2"),
     ], P8, X8, "HAM-D total (no MADRS)")
@@ -215,7 +215,7 @@ if __name__ == "__main__":
     # PR09 (no MADRS -> HAM-D total; scores by nearest survey to upload time)
     P9 = f"{UD}/sub-PR09-stage-2_audio-audiotype_preproc_spectral_gating_100_percent_metadata_and_plots"
     X9 = "sub-PR09_stage-2_audio-audiotype_preproc_spectral_gating_100_percent"
-    run_patient("PR09", [
+    run_patient("PR09 Stage 2", [
         (P9, X9, SUBJECT_RE, scores_from_pr09(f"{UD}/PR09Stage2_DATA_2026-04-18_1544.csv",
             "/data_store2/resection/neuropsych_video/presidio/Stage2/PR09/home/Files_PR09Stage2_2026-04-18_1541/index.html"), "Stage2"),
     ], P9, X9, "HAM-D total (no MADRS)")
